@@ -1,0 +1,9 @@
+{
+  "name": "Codespace with R",
+  "image": "mcr.microsoft.com/devcontainers/r:4.3",
+  "customizations": {
+    "vscode": {
+      "extensions": ["REditorSupport.r"]
+    }
+  }
+}
