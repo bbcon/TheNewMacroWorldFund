@@ -1,0 +1,37 @@
+# Universe of ETFs pulled via Yahoo Finance; extend as needed.
+universe:
+  - ticker: SPY
+    yahoo_symbol: SPY
+    asset_class: equity
+    region: US
+    currency: USD
+    role: US large-cap beta
+    start_date: 2010-01-01
+  - ticker: TLT
+    yahoo_symbol: TLT
+    asset_class: rates
+    region: US
+    currency: USD
+    role: Long duration USTs
+    start_date: 2010-01-01
+  - ticker: HYG
+    yahoo_symbol: HYG
+    asset_class: credit
+    region: US
+    currency: USD
+    role: US high yield credit
+    start_date: 2010-01-01
+  - ticker: EEM
+    yahoo_symbol: EEM
+    asset_class: equity
+    region: EM
+    currency: USD
+    role: EM equity beta
+    start_date: 2010-01-01
+  - ticker: GLD
+    yahoo_symbol: GLD
+    asset_class: commodities
+    region: Global
+    currency: USD
+    role: Strategic gold exposure
+    start_date: 2010-01-01

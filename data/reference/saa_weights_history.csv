@@ -1,0 +1,7 @@
+effective_date,strategy,ticker,weight,comment
+2024-01-01,macro_core,SPY,0.35,"US equity core"
+2024-01-01,macro_core,TLT,0.20,"Duration ballast"
+2024-01-01,macro_core,HYG,0.10,"Credit sleeve"
+2024-01-01,macro_core,EEM,0.10,"EM equity"
+2024-01-01,macro_core,GLD,0.15,"Gold diversifier"
+2024-01-01,macro_core,CASH,0.10,"Liquidity buffer"
