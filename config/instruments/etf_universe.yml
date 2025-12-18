@@ -35,3 +35,10 @@ universe:
     currency: USD
     role: Strategic gold exposure
     start_date: 2010-01-01
+  - ticker: IGLT
+    yahoo_symbol: IGLT.L
+    asset_class: rates
+    region: UK
+    currency: GBP
+    role: 10Y UK gilts proxy
+    start_date: 2014-01-01

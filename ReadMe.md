@@ -78,10 +78,25 @@ This ensures full reproducibility and portability.
 
 ## How to Read This Repo
 
-- `research/` contains strategic themes and logged trade ideas.
+- `config/` centralises the investable universe, strategic baselines, and data-source knobs.
+- `data/` flows raw pulls → interim cleaning → reference histories → model/performance outputs.
 - `models/` contains the diagnostics used to frame decisions.
-- `logs/` provides a transparent history of trades and research notes.
-- Each trade idea can be traced from **macro thesis → implementation → outcome**.
+- `scripts/` holds automation entry points (R, Python, and higher-level pipelines).
+- `logs/` provides a transparent history of weekly macro notes, live trades, and post-mortems.
+- `reports/` captures human-friendly outputs (weekly pack, performance, trade reviews).
+- `docs/` stores playbooks, templates, and workflow guidance so the process is reproducible.
+- `notebooks/` is reserved for exploratory analysis before code graduates into `models/` or `scripts/`.
+
+Each trade idea can be traced from **macro thesis → implementation → outcome** using the combination of `logs/`, `data/reference`, and `reports/`.
+
+## Weekly Operating Rhythm
+
+1. **Macro & market summary** – draft via `docs/templates/weekly_summary.md`, publish to `logs/weekly_macro/`, and surface charts in `reports/weekly_pack/`.
+2. **Run quant macro models** – execute scripts in `scripts/pipelines/` so outputs land in `data/outputs/models/` for dashboards.
+3. **Log tactical trades** – capture lifecycle notes in `logs/tactical_trades/` (use `docs/templates/trade_log.md`) and append weight changes to `data/reference/taa_weights_history.csv`, then run `scripts/R/trade_performance.R` to back up the narrative with analytics in `data/outputs/performance/trades/`.
+4. **Adjust SAA (when needed)** – edit `config/allocations/saa_current.yml` and document history in `data/reference/saa_weights_history.csv`.
+5. **Display portfolio performance** – read the latest returns from `data/processed/taa_portfolio_returns.parquet` (and mirror into `data/outputs/performance/`) when building `reports/performance/`.
+6. **Analyse previous trades** – use `logs/postmortems/` and promote insights into `reports/trade_reviews/` for easy recall.
 
 ---
 
@@ -90,8 +105,8 @@ This repository is a **transparent, professional macro decision journal** that d
 
 ## Getting Started with ETF Data + TAA
 
-- Define ETFs once in `config/etf_universe.yml`; scripts treat this as the single source of truth.
+- Define ETFs once in `config/instruments/etf_universe.yml`; scripts treat this as the single source of truth.
 - Maintain SAA baselines in `data/reference/saa_weights_history.csv` (weights sum to 1.0 and include the 10% cash sleeve that finances tactical tilts).
 - Record TAA deviations in `data/reference/taa_weights_history.csv` (weights sum to 0.0 per rebalance so trades are self-funded vs cash/other sleeves).
 - Pull Yahoo data with `Rscript scripts/R/fetch_yahoo_data.R` and build portfolio returns with `Rscript scripts/R/build_taa_portfolio.R`.
-- See `docs/data_workflow.md` for the full workflow, directory layout, and logging conventions.
+- See `docs/workflow/data_workflow.md` for the full workflow, directory layout, and logging conventions.

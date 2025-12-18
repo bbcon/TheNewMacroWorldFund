@@ -1,0 +1,11 @@
+# Yahoo Finance pull params
+frequency: daily
+adjust_prices: true
+universe_file: ../instruments/etf_universe.yml
+fields:
+  - open
+  - high
+  - low
+  - close
+  - adjclose
+  - volume

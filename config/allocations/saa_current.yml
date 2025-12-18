@@ -1,0 +1,10 @@
+# Strategic Asset Allocation baseline
+as_of: 2024-01-01
+notes: Placeholder allocation; update with live mix before running reports.
+weights:
+  equities_global: 0.45
+  rates_developed: 0.25
+  credit_global: 0.10
+  commodities: 0.10
+  alternatives: 0.05
+  cash: 0.05

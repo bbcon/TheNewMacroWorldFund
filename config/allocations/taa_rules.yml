@@ -1,0 +1,7 @@
+# Tactical tilt guardrails
+max_gross_exposure: 0.30   # self-funded vs cash sleeve
+position_horizon_weeks: 4-12
+risk_budget_bp: 150
+notes:
+  - Document rationale for any override directly in the trade log.
+  - Keep weights in `data/reference/taa_weights_history.csv` self-financing (sum to 0).
