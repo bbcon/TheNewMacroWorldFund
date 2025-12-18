@@ -10,3 +10,9 @@
     "ghcr.io/devcontainers/features/git:1": {}
   }
 }
+{
+  "name": "codespace",
+  "features": {
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
+  }
+}
