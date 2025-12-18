@@ -1,0 +1,7 @@
+{
+  "r.rterm.linux": "/usr/local/bin/R",
+  "r.sessionWatcher": true,
+  "r.alwaysUseActiveTerminal": true,
+  "r.rpath.linux": "/usr/local/bin/R",
+  "r.profile.path": "${workspaceFolder}/.vscode/.Rprofile"
+}

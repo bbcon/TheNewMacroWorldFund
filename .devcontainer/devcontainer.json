@@ -2,17 +2,20 @@
   "name": "Codespace with R",
   "image": "rocker/r-ver:4.3.2",
   "customizations": {
-    "vscode": { "extensions": ["REditorSupport.r"] }
-  }
-}
-{
+    "vscode": {
+      "extensions": [
+        "REditorSupport.r",
+        "github.copilot-chat",
+        "openai.chatgpt"
+      ]
+    }
+  },
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  }
-}
-{
-  "name": "codespace",
-  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/git-lfs:1": {}
-  }
+  },
+  "containerEnv": {
+  "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}"
+},
+  "postCreateCommand": "Rscript .devcontainer/install-packages.r"
 }
