@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Performance Preview</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      color: #0f172a;
+      background: #f8fafc;
+      line-height: 1.5;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      max-width: 1100px;
+      margin-inline: auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    h1 { margin: 0; font-size: 26px; }
+    .muted { color: #475569; }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+      margin-bottom: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #e2f3ff;
+      color: #0b6e99;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    th { background: #f1f5f9; }
+    tr:hover { background: #f8fafc; }
+    .note {
+      border-left: 3px solid #0ea5e9;
+      padding-left: 10px;
+      color: #475569;
+      font-size: 13px;
+    }
+    a { color: #0f766e; }
+    code { background: #f1f5f9; padding: 2px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Trade Performance Dashboard</h1>
+      <div class="muted">Example view for GitHub Pages. Replace the sample data with your CSVs.</div>
+    </div>
+    <span class="pill">Demo</span>
+  </header>
+
+  <div class="card grid" id="summary-cards"></div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Daily Returns (sample)</h3>
+    <table id="daily-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Long</th>
+          <th>Short</th>
+          <th>Spread</th>
+          <th>NAV</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card note">
+    <strong>How to wire this up:</strong>
+    <ol style="margin: 6px 0 0 16px; padding: 0;">
+      <li>Generate CSVs: <code>data/outputs/performance/trades/&lt;trade_id&gt;_daily.csv</code> and <code>.../&lt;trade_id&gt;_summary.csv</code>.</li>
+      <li>Copy them into <code>docs/data/outputs/performance/trades/</code> (so GitHub Pages can serve them).</li>
+      <li>Replace the sample data below with fetch calls (see inline comment in JS).</li>
+      <li>Push to main; enable Pages on the repo using the <code>/docs</code> folder.</li>
+    </ol>
+  </div>
+
+  <script>
+    // Fake data so you can see the layout on GitHub.
+    const summary = [{
+      trade_id: "DEMO-001",
+      long_ticker: "SPY",
+      short_ticker: "CASH",
+      entry_date: "2023-01-03",
+      exit_date: "2023-04-28",
+      days_held: 80,
+      long_total_return: 0.072,
+      short_total_return: 0.0,
+      spread_total_return: 0.072,
+      max_drawdown: -0.028
+    }];
+
+    const daily = [
+      { date: "2023-01-03", long_return: 0.001, short_return: 0.0, spread_return: 0.001, spread_nav: 1.001 },
+      { date: "2023-01-04", long_return: -0.002, short_return: 0.0, spread_return: -0.002, spread_nav: 0.999 },
+      { date: "2023-01-05", long_return: 0.004, short_return: 0.0, spread_return: 0.004, spread_nav: 1.003 },
+      { date: "2023-01-06", long_return: 0.003, short_return: 0.0, spread_return: 0.003, spread_nav: 1.006 },
+      { date: "2023-01-09", long_return: -0.001, short_return: 0.0, spread_return: -0.001, spread_nav: 1.005 }
+    ];
+
+    // If you want to load real data, swap the above with:
+    // fetch("./data/outputs/performance/trades/<trade_id>_summary.csv")
+    //   .then(r => r.text())
+    //   .then(text => Papa.parse(text, { header: true }).data);
+    // Same for the daily CSV. (Include PapaParse from CDN if you need robust CSV parsing.)
+
+    const fmtPct = (n) => (n * 100).toFixed(2) + "%";
+
+    function renderSummaryCards(rows) {
+      const container = document.getElementById("summary-cards");
+      container.innerHTML = rows.map(r => `
+        <div class="card">
+          <div class="muted" style="margin-bottom:6px;">Trade ${r.trade_id}</div>
+          <div style="font-weight:700;">${r.long_ticker} / ${r.short_ticker}</div>
+          <div class="muted">${r.entry_date} → ${r.exit_date}</div>
+          <div style="margin-top:10px;">Spread return: <strong>${fmtPct(r.spread_total_return)}</strong></div>
+          <div>Max drawdown: <strong>${fmtPct(r.max_drawdown)}</strong></div>
+        </div>
+      `).join("");
+    }
+
+    function renderDailyTable(rows) {
+      const body = document.querySelector("#daily-table tbody");
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.date}</td>
+          <td>${fmtPct(r.long_return)}</td>
+          <td>${fmtPct(r.short_return)}</td>
+          <td>${fmtPct(r.spread_return)}</td>
+          <td>${r.spread_nav.toFixed(3)}x</td>
+        </tr>
+      `).join("");
+    }
+
+    renderSummaryCards(summary);
+    renderDailyTable(daily);
+  </script>
+</body>
+</html>

@@ -5,6 +5,7 @@
     "vscode": {
       "extensions": [
         "REditorSupport.r",
+        "ikuyadeu.r-pack",
         "github.copilot-chat",
         "openai.chatgpt"
       ]
