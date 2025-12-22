@@ -40,10 +40,26 @@ Portfolio returns are then constructed. Portfolio performance can truly be decom
 
 Finally, some summary statistics of the YTD and overall portfolio performance are displayed. 
 
-Portfolio returns and portfolio metrics (both YTD and overall) are then output (as a list) in the folder 'outputs/portfolio/YYYYMMDD/portfolio_metrics.rds'. These portfolio metrics are run in a rmd (in 'reports/performance/portfolio_metrics.rmd0 which reads the latest available data) file that displays the latest results in a html format. These will then be displayed also in a tab of the fund website.
+Portfolio returns and portfolio metrics (both YTD and overall) are then output (as a list) in the folder 'outputs/portfolio/YYYYMMDD/portfolio_metrics.parquet'.
+
+## Logging and analysing trades
+
+TAA and SAA trades are logged by adjusting the TAA and SAA weights mentioned above. The rationale of the trade are written in 'logs/tactical_trades/xxx.md' and 'logs/strategic_trades/xxx.md', respectively. This is important because the folder logs/postmortems/ will have the postmortem analysis of the trades to see whether they worked or not.
+
+The script 'scripts/R/trade_performance.R' analyses the performance of one trade in isolation. It can be run via the command line.
+
+The script 'scripts/R/run_all_trade_perf.R' analyses all trades (both active and finalised). Performance is output per year and with the ability to check the performance of live versus closed trades.
+
+## Portfolio performance
+
+ The overall portfolio metrics are run in a rmd (in 'reports/performance/portfolio_metrics.rmd' which reads the latest available data stored in outputs/portfolio/YYYYMMDD/portfolio_metrics.parquet). The rmd displays insightful analysis. 
+ 
+ In addition, a decomposition of the performance in SAA vs TAA is also done.
+
+ These files form the basis for what will be published on the website.
 
 
-
+## 
 
 
 # OLD (KEEP FOR NOW)
