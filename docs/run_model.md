@@ -30,7 +30,7 @@ Rscript scripts/R/fetch_yahoo_data.R \
 
 ## 5) Build portfolio returns (SAA + TAA)
 ```
-Rscript scripts/R/build_taa_portfolio.R \
+Rscript scripts/R/build_portfolio.R \
   --saa-weights data/reference/saa_weights_history.csv \
   --weights data/reference/taa_weights_history.csv \
   --price-dir data/raw/yahoo \
@@ -65,6 +65,6 @@ Rscript scripts/R/trade_performance.R \
 - Outputs: `<trade_id>_daily.csv` and `<trade_id>_summary.csv` in `data/outputs/performance/trades/`.
 
 ## 8) Common pitfalls
-- Ticker mismatches: `saa_weights_history.csv`/`taa_weights_history.csv` tickers must match parquet filenames from the universe; otherwise `build_taa_portfolio.R` will fail with “Missing price data”.
+- Ticker mismatches: `saa_weights_history.csv`/`taa_weights_history.csv` tickers must match parquet filenames from the universe; otherwise `build_portfolio.R` will fail with “Missing price data”.
 - Weight sums: SAA must sum to 1.0 per date; TAA must sum to 0.0 per date.
 - Cash handling: If no `CASH` price series is provided, the scripts assume 0 return.

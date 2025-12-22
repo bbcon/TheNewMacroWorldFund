@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trade Performance Preview</title>
+  <title>Portfolio + TAA Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
       color: #0f172a;
       background: #f8fafc;
       line-height: 1.5;
@@ -14,7 +15,7 @@
     body {
       margin: 0;
       padding: 24px;
-      max-width: 1100px;
+      max-width: 1180px;
       margin-inline: auto;
     }
     header {
@@ -23,10 +24,20 @@
       gap: 12px;
       flex-wrap: wrap;
       align-items: baseline;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
-    h1 { margin: 0; font-size: 26px; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -0.3px; }
     .muted { color: #475569; }
+    .pill {
+      padding: 6px 12px;
+      background: #0f766e;
+      color: #ecfeff;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
     .card {
       background: #fff;
       border: 1px solid #e2e8f0;
@@ -37,17 +48,20 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 12px;
     }
-    .pill {
-      display: inline-block;
-      padding: 4px 10px;
-      background: #e2f3ff;
-      color: #0b6e99;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 12px;
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat .label { color: #475569; font-size: 13px; }
+    .stat .value { font-size: 22px; font-weight: 700; }
+    .flex {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
     }
     table {
       width: 100%;
@@ -61,112 +75,308 @@
     }
     th { background: #f1f5f9; }
     tr:hover { background: #f8fafc; }
-    .note {
-      border-left: 3px solid #0ea5e9;
-      padding-left: 10px;
-      color: #475569;
-      font-size: 13px;
+    .empty {
+      text-align: center;
+      color: #94a3b8;
+      padding: 12px 0;
+      font-size: 14px;
     }
-    a { color: #0f766e; }
-    code { background: #f1f5f9; padding: 2px 4px; border-radius: 4px; }
+    a { color: #0f766e; text-decoration: none; }
   </style>
 </head>
 <body>
   <header>
     <div>
-      <h1>Trade Performance Dashboard</h1>
-      <div class="muted">Example view for GitHub Pages. Replace the sample data with your CSVs.</div>
+      <h1>Portfolio + TAA Dashboard</h1>
+      <div class="muted">NAV, risk, attribution, and trade-level detail (data from R exports under <code>docs/data</code>).</div>
     </div>
-    <span class="pill">Demo</span>
+    <span class="pill">Live Data</span>
   </header>
 
-  <div class="card grid" id="summary-cards"></div>
+  <div class="card grid" id="metric-cards"></div>
 
-  <div class="card">
-    <h3 style="margin-top:0;">Daily Returns (sample)</h3>
-    <table id="daily-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Long</th>
-          <th>Short</th>
-          <th>Spread</th>
-          <th>NAV</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="flex">
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">NAV</h3>
+      <canvas id="nav-chart" height="220"></canvas>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">Drawdowns</h3>
+      <canvas id="dd-chart" height="220"></canvas>
+    </div>
   </div>
 
-  <div class="card note">
-    <strong>How to wire this up:</strong>
-    <ol style="margin: 6px 0 0 16px; padding: 0;">
-      <li>Generate CSVs: <code>data/outputs/performance/trades/&lt;trade_id&gt;_daily.csv</code> and <code>.../&lt;trade_id&gt;_summary.csv</code>.</li>
-      <li>Copy them into <code>docs/data/outputs/performance/trades/</code> (so GitHub Pages can serve them).</li>
-      <li>Replace the sample data below with fetch calls (see inline comment in JS).</li>
-      <li>Push to main; enable Pages on the repo using the <code>/docs</code> folder.</li>
-    </ol>
+  <div class="card">
+    <h3 style="margin:0 0 8px 0;">Rolling Metrics (63d)</h3>
+    <canvas id="rolling-chart" height="200"></canvas>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px 0;">Attribution (SAA vs TAA)</h3>
+    <canvas id="attrib-chart" height="220"></canvas>
+  </div>
+
+  <div class="flex">
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">Trade Equity Curve</h3>
+      <canvas id="trade-equity-chart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">Trades</h3>
+      <table id="trades-table">
+        <thead>
+          <tr>
+            <th>Trade</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Return</th>
+            <th>DD</th>
+            <th>Sharpe</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    // Fake data so you can see the layout on GitHub.
-    const summary = [{
-      trade_id: "DEMO-001",
-      long_ticker: "SPY",
-      short_ticker: "CASH",
-      entry_date: "2023-01-03",
-      exit_date: "2023-04-28",
-      days_held: 80,
-      long_total_return: 0.072,
-      short_total_return: 0.0,
-      spread_total_return: 0.072,
-      max_drawdown: -0.028
-    }];
+    const fmtPct = (n, digits = 1) => n === null || n === undefined || isNaN(n) ? "—" : `${(n * 100).toFixed(digits)}%`;
+    const fmtNum = (n, digits = 2) => n === null || n === undefined || isNaN(n) ? "—" : n.toFixed(digits);
+    const fetchJSON = async (path) => {
+      try {
+        const res = await fetch(path);
+        if (!res.ok) return [];
+        return await res.json();
+      } catch (e) {
+        console.warn("Failed to load", path, e);
+        return [];
+      }
+    };
 
-    const daily = [
-      { date: "2023-01-03", long_return: 0.001, short_return: 0.0, spread_return: 0.001, spread_nav: 1.001 },
-      { date: "2023-01-04", long_return: -0.002, short_return: 0.0, spread_return: -0.002, spread_nav: 0.999 },
-      { date: "2023-01-05", long_return: 0.004, short_return: 0.0, spread_return: 0.004, spread_nav: 1.003 },
-      { date: "2023-01-06", long_return: 0.003, short_return: 0.0, spread_return: 0.003, spread_nav: 1.006 },
-      { date: "2023-01-09", long_return: -0.001, short_return: 0.0, spread_return: -0.001, spread_nav: 1.005 }
-    ];
+    function groupBy(arr, keyFn) {
+      return arr.reduce((acc, item) => {
+        const k = keyFn(item);
+        acc[k] = acc[k] || [];
+        acc[k].push(item);
+        return acc;
+      }, {});
+    }
 
-    // If you want to load real data, swap the above with:
-    // fetch("./data/outputs/performance/trades/<trade_id>_summary.csv")
-    //   .then(r => r.text())
-    //   .then(text => Papa.parse(text, { header: true }).data);
-    // Same for the daily CSV. (Include PapaParse from CDN if you need robust CSV parsing.)
-
-    const fmtPct = (n) => (n * 100).toFixed(2) + "%";
-
-    function renderSummaryCards(rows) {
-      const container = document.getElementById("summary-cards");
-      container.innerHTML = rows.map(r => `
-        <div class="card">
-          <div class="muted" style="margin-bottom:6px;">Trade ${r.trade_id}</div>
-          <div style="font-weight:700;">${r.long_ticker} / ${r.short_ticker}</div>
-          <div class="muted">${r.entry_date} → ${r.exit_date}</div>
-          <div style="margin-top:10px;">Spread return: <strong>${fmtPct(r.spread_total_return)}</strong></div>
-          <div>Max drawdown: <strong>${fmtPct(r.max_drawdown)}</strong></div>
+    function renderMetricCards(metrics) {
+      if (!metrics.length) {
+        document.getElementById("metric-cards").innerHTML = '<div class="empty">No metrics found. Run the R exporters.</div>';
+        return;
+      }
+      const periods = ["since_inception", `${new Date().getFullYear()}_ytd`];
+      const strategies = Array.from(new Set(metrics.map(m => m.strategy)));
+      const rows = [];
+      strategies.forEach(strategy => {
+        periods.forEach(period => {
+          const row = metrics.find(m => m.strategy === strategy && m.period === period);
+          if (row) rows.push(row);
+        });
+      });
+      document.getElementById("metric-cards").innerHTML = rows.map(r => `
+        <div class="card stat">
+          <div class="label">${r.strategy} · ${r.period.replace("_", " ").toUpperCase()}</div>
+          <div class="value">${fmtPct(r.total_return, 2)}</div>
+          <div class="muted">CAGR ${fmtPct(r.cagr, 2)} · Vol ${fmtPct(r.vol, 2)} · Sharpe ${fmtNum(r.sharpe, 2)} · MaxDD ${fmtPct(r.max_drawdown, 1)}</div>
         </div>
       `).join("");
     }
 
-    function renderDailyTable(rows) {
-      const body = document.querySelector("#daily-table tbody");
-      body.innerHTML = rows.map(r => `
+    function renderNavChart(ctx, portfolio) {
+      if (!portfolio.length) return;
+      const grouped = groupBy(portfolio, d => d.strategy);
+      const labels = Array.from(new Set(portfolio.map(d => d.date))).sort();
+      const colors = ["#0f766e", "#2563eb", "#d97706", "#8b5cf6"];
+      const datasets = Object.entries(grouped).map(([strategy, rows], i) => ({
+        label: strategy,
+        data: labels.map(d => {
+          const row = rows.find(r => r.date === d);
+          return row ? row.nav : null;
+        }),
+        borderColor: colors[i % colors.length],
+        tension: 0.2,
+        spanGaps: true
+      }));
+      new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: { plugins: { legend: { display: true } }, scales: { y: { beginAtZero: false } } }
+      });
+    }
+
+    function renderDrawdownChart(ctx, drawdowns) {
+      if (!drawdowns.length) return;
+      const grouped = groupBy(drawdowns, d => d.strategy);
+      const labels = Array.from(new Set(drawdowns.map(d => d.date))).sort();
+      const colors = ["#dc2626", "#0ea5e9", "#7c3aed"];
+      const datasets = Object.entries(grouped).map(([strategy, rows], i) => ({
+        label: strategy,
+        data: labels.map(d => {
+          const row = rows.find(r => r.date === d);
+          return row ? row.drawdown : null;
+        }),
+        borderColor: colors[i % colors.length],
+        backgroundColor: "transparent",
+        tension: 0.2,
+        spanGaps: true
+      }));
+      new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          scales: {
+            y: {
+              ticks: { callback: v => fmtPct(v, 0) },
+              min: Math.min(-0.6, Math.min(...drawdowns.map(d => d.drawdown || 0)))
+            }
+          }
+        }
+      });
+    }
+
+    function renderRollingChart(ctx, rolling) {
+      if (!rolling.length) return;
+      const grouped = groupBy(rolling, d => d.strategy);
+      const labels = Array.from(new Set(rolling.map(d => d.date))).sort();
+      const colors = ["#0f766e", "#2563eb", "#d97706", "#8b5cf6"];
+      const datasets = Object.entries(grouped).map(([strategy, rows], i) => ({
+        label: `${strategy} · roll Sharpe (63d)`,
+        data: labels.map(d => {
+          const row = rows.find(r => r.date === d);
+          return row ? row.roll_63_sharpe : null;
+        }),
+        borderColor: colors[i % colors.length],
+        tension: 0.2,
+        spanGaps: true
+      }));
+      new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: { scales: { y: { beginAtZero: false } } }
+      });
+    }
+
+    function renderAttribChart(ctx, attrib) {
+      if (!attrib.length) return;
+      const monthly = attrib.map(r => ({
+        month: r.date.slice(0, 7),
+        strategy: r.strategy,
+        return_saa: r.return_saa,
+        return_taa: r.return_taa
+      }));
+      const grouped = groupBy(monthly, r => `${r.strategy}-${r.month}`);
+      const rows = Object.entries(grouped).map(([key, vals]) => {
+        const [strategy, month] = key.split("-");
+        return {
+          strategy,
+          month,
+          return_saa: vals.reduce((a, b) => a + (b.return_saa || 0), 0),
+          return_taa: vals.reduce((a, b) => a + (b.return_taa || 0), 0)
+        };
+      });
+      const labels = Array.from(new Set(rows.map(r => r.month))).sort();
+      const strategies = Array.from(new Set(rows.map(r => r.strategy)));
+      const datasets = [];
+      strategies.forEach(strategy => {
+        datasets.push({
+          label: `${strategy} · SAA`,
+          stack: strategy,
+          backgroundColor: "rgba(15,118,110,0.6)",
+          data: labels.map(m => {
+            const row = rows.find(r => r.strategy === strategy && r.month === m);
+            return row ? row.return_saa : 0;
+          })
+        });
+        datasets.push({
+          label: `${strategy} · TAA`,
+          stack: strategy,
+          backgroundColor: "rgba(217,95,2,0.6)",
+          data: labels.map(m => {
+            const row = rows.find(r => r.strategy === strategy && r.month === m);
+            return row ? row.return_taa : 0;
+          })
+        });
+      });
+      new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "top" } },
+          scales: { y: { ticks: { callback: v => fmtPct(v, 0) } }, x: { stacked: true }, yAxes: [{ stacked: true }] }
+        }
+      });
+    }
+
+    function renderTradeEquity(ctx, tradeEquity) {
+      if (!tradeEquity.length) return;
+      const labels = tradeEquity.map(r => r.date);
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Trade NAV",
+            data: tradeEquity.map(r => r.nav),
+            borderColor: "#0ea5e9",
+            tension: 0.2,
+            spanGaps: true
+          }]
+        },
+        options: { scales: { y: { beginAtZero: false } } }
+      });
+    }
+
+    function renderTradesTable(trades) {
+      const body = document.querySelector("#trades-table tbody");
+      if (!trades.length) {
+        body.innerHTML = `<tr><td class="empty" colspan="6">No trades found.</td></tr>`;
+        return;
+      }
+      body.innerHTML = trades.sort((a, b) => (b.exit_date || "").localeCompare(a.exit_date || "")).map(t => `
         <tr>
-          <td>${r.date}</td>
-          <td>${fmtPct(r.long_return)}</td>
-          <td>${fmtPct(r.short_return)}</td>
-          <td>${fmtPct(r.spread_return)}</td>
-          <td>${r.spread_nav.toFixed(3)}x</td>
+          <td>${t.trade_id}</td>
+          <td>${t.entry_date}</td>
+          <td>${t.exit_date || "Open"}</td>
+          <td>${fmtPct(t.spread_total_return ?? t.total_return, 2)}</td>
+          <td>${fmtPct(t.max_drawdown, 1)}</td>
+          <td>${fmtNum(t.sharpe, 2)}</td>
         </tr>
       `).join("");
     }
 
-    renderSummaryCards(summary);
-    renderDailyTable(daily);
+    async function init() {
+      const [
+        portfolio,
+        metrics,
+        drawdowns,
+        rolling,
+        attribution,
+        tradesSummary,
+        tradesEquity
+      ] = await Promise.all([
+        fetchJSON("./data/portfolio.json"),
+        fetchJSON("./data/metrics.json"),
+        fetchJSON("./data/drawdowns.json"),
+        fetchJSON("./data/rolling.json"),
+        fetchJSON("./data/attribution.json"),
+        fetchJSON("./data/trades_summary.json"),
+        fetchJSON("./data/trades_equity.json")
+      ]);
+
+      renderMetricCards(metrics);
+      renderNavChart(document.getElementById("nav-chart"), portfolio);
+      renderDrawdownChart(document.getElementById("dd-chart"), drawdowns);
+      renderRollingChart(document.getElementById("rolling-chart"), rolling);
+      renderAttribChart(document.getElementById("attrib-chart"), attribution);
+      renderTradeEquity(document.getElementById("trade-equity-chart"), tradesEquity);
+      renderTradesTable(tradesSummary);
+    }
+
+    init();
   </script>
 </body>
 </html>

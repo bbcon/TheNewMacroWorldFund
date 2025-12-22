@@ -25,7 +25,7 @@ The repo now separates configuration, raw data, processed artefacts, and logs so
    - Pulls daily prices from Yahoo via `quantmod`.
    - Writes each ETF to `data/raw/yahoo/<ticker>.parquet` so future work reuses cached files.
 
-2. `scripts/R/build_taa_portfolio.R`
+2. `scripts/R/build_portfolio.R`
    - Reads both the SAA baseline and the zero-sum TAA deviations.
    - Expands each across the trading calendar, sums them to net weights (enforcing 1.0 total exposure) and injects a synthetic `CASH` series if no data is provided.
    - Joins ETF returns, computes strategy level returns/NAV, and drops parquet output in `data/outputs/performance/taa_portfolio_returns.parquet` for downstream reporting.
@@ -35,6 +35,21 @@ The repo now separates configuration, raw data, processed artefacts, and logs so
    - Consumes price data from `data/raw/yahoo/` (plus synthetic cash returns) and calculates long/short leg returns between entry/exit dates.
    - Writes daily spread returns and summary statistics to `data/outputs/performance/trades/<trade_id>_{daily,summary}.csv`.
    - Use this after logging a trade to back up the narrative with objective performance diagnostics.
+
+4. `scripts/R/aggregate_trades.R`
+   - Sweeps `_daily` and `_summary` files in `data/outputs/performance/trades/` to build a portfolio-level trade equity curve, drawdown, and refreshed trade metrics.
+   - Saves parquet outputs and ggplot charts under `reports/figures/`.
+
+5. `scripts/R/compute_portfolio_metrics.R`
+   - Reads `taa_portfolio_returns.parquet` and computes since-inception/YTD stats, rolling returns/vol/Sharpe, and drawdowns.
+   - Writes parquet tables plus ggplot charts (`portfolio_nav.png`, `portfolio_drawdowns.png`) to `reports/figures/`.
+
+6. `scripts/R/attribution.R`
+   - Decomposes daily return into SAA vs TAA contribution using historical weights and price data.
+   - Writes `data/outputs/performance/attribution.parquet` and a stacked bar ggplot chart in `reports/figures/`.
+
+7. `scripts/R/export_site_data.R`
+   - Converts parquet outputs into compact JSON files under `docs/data/` for the static site.
 
 ## Allocation policy
 - **SAA weights** live in `data/reference/saa_weights_history.csv` and *must* sum to 1.0 for each effective date (including the 10% cash sleeve).
@@ -51,8 +66,22 @@ Rscript scripts/R/fetch_yahoo_data.R --start 2015-01-01
 # 2. Append/adjust SAA + TAA rows in data/reference/saa_weights_history.csv and data/reference/taa_weights_history.csv
 
 # 3. Rebuild the portfolio view
-Rscript scripts/R/build_taa_portfolio.R
+Rscript scripts/R/build_portfolio.R
 
 # 4. Refresh trade-level analytics (example for trade TAA-2024-01)
 Rscript scripts/R/trade_performance.R --trade-id TAA-2024-01 --long SPY --short CASH --entry 2024-04-25 --exit 2024-11-15
+
+# 5. Aggregate trades into a portfolio-level view
+Rscript scripts/R/aggregate_trades.R
+
+# 6. Compute portfolio metrics + charts (NAV, drawdown, rolling stats)
+Rscript scripts/R/compute_portfolio_metrics.R
+
+# 7. Run attribution (SAA vs TAA contribution)
+Rscript scripts/R/attribution.R
+
+# 8. Export JSON for the static site
+Rscript scripts/R/export_site_data.R
+
+# 9. (Optional) Knit an RMarkdown report and open docs/index.html for the latest visuals
 ```

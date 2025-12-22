@@ -168,5 +168,5 @@ This repository is a **transparent, professional macro decision journal** that d
 - Define ETFs once in `config/instruments/etf_universe.yml`; scripts treat this as the single source of truth.
 - Maintain SAA baselines in `data/reference/saa_weights_history.csv` (weights sum to 1.0 and include the 10% cash sleeve that finances tactical tilts).
 - Record TAA deviations in `data/reference/taa_weights_history.csv` (weights sum to 0.0 per rebalance so trades are self-funded vs cash/other sleeves).
-- Pull Yahoo data with `Rscript scripts/R/fetch_yahoo_data.R` and build portfolio returns with `Rscript scripts/R/build_taa_portfolio.R`.
+- Pull Yahoo data with `Rscript scripts/R/fetch_yahoo_data.R` and build portfolio returns with `Rscript scripts/R/build_portfolio.R`.
 - See `docs/workflow/data_workflow.md` for the full workflow, directory layout, and logging conventions.

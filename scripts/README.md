@@ -10,7 +10,11 @@ Keep scripts idempotent and rely on configs under `config/` rather than hard-cod
 
 ### Key entry points
 - `R/fetch_yahoo_data.R` – refresh ETF prices in `data/raw/yahoo/`.
-- `R/build_taa_portfolio.R` – merge SAA + TAA weights into portfolio returns and weight snapshots.
+- `R/build_portfolio.R` – merge SAA + TAA weights into portfolio returns and weight snapshots.
 - `R/trade_performance.R` – generate per-trade analytics (spread returns, drawdowns) and write them to `data/outputs/performance/trades/`.
 - `R/run_all_trade_perf.R` – read `data/reference/taa_weights_history.csv` (rows with `trade_id`), infer long/short legs, and call `trade_performance.R` for each trade.
+- `R/aggregate_trades.R` – combine trade summaries and daily files into portfolio-level equity/drawdown and save figures.
+- `R/compute_portfolio_metrics.R` – compute since-inception/YTD stats, rolling risk, and ggplot charts for the portfolio.
+- `R/attribution.R` – decompose daily returns into SAA vs TAA contributions and export attribution charts.
+- `R/export_site_data.R` – convert parquet outputs to JSON for the static site.
 - `run_all_trade_perf.sh` – parse TAA trade logs (`logs/tactical_trades/taa-*.md`) and run `trade_performance.R` for each.
