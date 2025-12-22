@@ -1,41 +1,48 @@
 # Universe of ETFs pulled via Yahoo Finance; extend as needed.
 universe:
-  - ticker: SPY
-    yahoo_symbol: SPY
+  - ticker: USEQMA
+    yahoo_symbol: ^GSPC
     asset_class: equity
     region: US
     currency: USD
-    role: US large-cap beta
+    role: US market cap weighted
     start_date: 2010-01-01
-  - ticker: TLT
-    yahoo_symbol: TLT
-    asset_class: rates
+  - ticker: USBO10
+    yahoo_symbol: IEF
+    asset_class: bonds
     region: US
     currency: USD
-    role: Long duration USTs
+    role: US Treasuries 10y
     start_date: 2010-01-01
-  - ticker: HYG
-    yahoo_symbol: HYG
-    asset_class: credit
-    region: US
-    currency: USD
-    role: US high yield credit
-    start_date: 2010-01-01
-  - ticker: EEM
-    yahoo_symbol: EEM
+  - ticker: CNEQMA
+    yahoo_symbol: MCHI
     asset_class: equity
-    region: EM
+    region: China
     currency: USD
-    role: EM equity beta
+    role: China exposure
     start_date: 2010-01-01
-  - ticker: GLD
-    yahoo_symbol: GLD
+  - ticker: USEQEN
+    yahoo_symbol: XLE
+    asset_class: equity
+    region: US
+    currency: USD
+    role: US energy
+    start_date: 2010-01-01
+  - ticker: USEQCD
+    yahoo_symbol: XLY
+    asset_class: equity
+    region: US
+    currency: USD
+    role: Equity business cycle
+    start_date: 2010-01-01
+  - ticker: GLGOLD
+    yahoo_symbol: ZGLD.SW
     asset_class: commodities
     region: Global
     currency: USD
     role: Strategic gold exposure
     start_date: 2010-01-01
-  - ticker: IGLT
+  - ticker: UKBO10
     yahoo_symbol: IGLT.L
     asset_class: rates
     region: UK

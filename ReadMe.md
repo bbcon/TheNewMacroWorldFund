@@ -1,8 +1,52 @@
 # The New Macro World Fund
 
-**The New Macro World Fund** is a personal macro-research and portfolio journal designed to provide **full transparency on discretionary macro decisions**, build a **credible track record**, and support **continuous learning and strategy refinement** over time.
+## Philosophy
 
-It reflects a professional, investment-oriented approach to macro strategy across asset classes, combining structured quantitative tools with discretionary judgement.
+**The New Macro World Fund** is a personal macro-research and portfolio journal designed to provide **full transparency on discretionary macro decisions**, build a **credible track record**, and support **continuous learning and strategy refinement** over time. It reflects a professional, investment-oriented approach to macro strategy across asset classes, combining structured quantitative tools with discretionary judgement.
+
+The strategy is made of two blocks: 
+
+**SAA:** the SAA aims to identify and profit from structural changes in the world economy, driven by the ongoing geopolitical restructuring and its implications for economic and trade policies, changes in energy systems driven by national security and climate considerations, and the profound technological changes that AI is creating. It also recognises the unsustainable fiscal trajectory of a number of developed economies.
+
+**TAA:** the TAA aims to benefit from mispricing of macroeconomic fundamentals across asset classes. These are more short-term in nature. Please add a bit more here to make it look more professional.
+
+## Instruments, asset classes, and benchmarks
+
+The fund invests is multi-asset and invests in liquid ETFs of major asset classes. The core asset classes are: equities, sovereigns, FX, and commodities. It retains the flexibility to invest in short-term futures (to play the curve). Can you add some stuffs here to make it more professional? Strategic sectoral views are expressed through exposure to sector specific ETFs and (potentially) specific commodities that play a theme. Macro regime views are expressed through the relativel weights of fixed income versus equities. It invests in both developed and emerging markets.
+
+The benchmark is a simple 60/40 portfolio with a similar regional distribution than the SAA portfolio.
+
+
+---
+
+# Workflow
+
+## Data ingestion
+
+The script 'scripts/R/fetch_yahoo_data.R' loads ETFs data from Yahoo Finance. The tickers and their description are defined in a config file located in 'config/instruments/etf_universe.yml'. The fact that ETFs are retrieved from Yahoo provides full transparency and reproducibility. However, this comes at two serious costs: i) data may not be reliable and may be retroactively adjusted, and ii) certain (a lot!) ETFs may not be available. The live portfolio will use data from Datastream (still to do).
+
+The following CLI script can be run in the terminal:
+
+Add rscript CLI command here.
+
+
+## Portfolio construction and metrics
+
+The script 'scripts/R/build_portfolio.R' (name needs to be adjusted) loads SAA and TAA weights from `data/weights/SAA_weights.csv' and 'data/weights/TAA_weights.csv', respectively. These two files contain the history of SAA and TAA weights. New trades, either changes in structural allocation or tactical trades are logged by adjusting these .csv files, making sure the date of the change is correctly set.
+
+The script ensures that weights sum up to the required amount (1 for SAA, and 0 for TAA).
+
+Portfolio returns are then constructed. Portfolio performance can truly be decomposed as the sum of SAA and TAA. The natural benchmark for the SAA is the benchmark portfolio, while the benchmark for TAA is absolute.
+
+Finally, some summary statistics of the YTD and overall portfolio performance are displayed. 
+
+Portfolio returns and portfolio metrics (both YTD and overall) are then output (as a list) in the folder 'outputs/portfolio/YYYYMMDD/portfolio_metrics.rds'. These portfolio metrics are run in a rmd (in 'reports/performance/portfolio_metrics.rmd0 which reads the latest available data) file that displays the latest results in a html format. These will then be displayed also in a tab of the fund website.
+
+
+
+
+
+# OLD (KEEP FOR NOW)
 
 ---
 

@@ -13,12 +13,10 @@ suppressPackageStartupMessages({
 })
 
 
-a 
-
 `%||%` <- function(x, y) if (is.null(x) || is.na(x) || identical(x, "")) y else x
 
 option_list <- list(
-  optparse::make_option(c("-c", "--config"), type = "character", default = "config/etf_universe.yml",
+  optparse::make_option(c("-c", "--config"), type = "character", default = "config/instruments/etf_universe.yml",
                         help = "Path to ETF universe config (YAML)."),
   optparse::make_option(c("-s", "--start"), type = "character", default = NA,
                         help = "Override start date (YYYY-MM-DD)."),
@@ -48,7 +46,7 @@ fetch_symbol <- function(entry) {
 
   message(sprintf("Downloading %s from %s", symbol, start_date))
   xt <- quantmod::getSymbols(Symbols = symbol, src = "yahoo", auto.assign = FALSE,
-                             from = start_date, to = end_date)
+                             from = start_date, to = today())
   df <- tibble::tibble(
     date = lubridate::as_date(zoo::index(xt)),
     open = as.numeric(xt[, 1]),
@@ -68,3 +66,4 @@ fetch_symbol <- function(entry) {
 }
 
 purrr::walk(universe, fetch_symbol)
+

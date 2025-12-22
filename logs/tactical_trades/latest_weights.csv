@@ -1,0 +1,8 @@
+strategy,date,ticker,weight_saa,weight_taa,net_weight
+macro_core,2025-12-19,CNEQMA,0.1,0,0.1
+macro_core,2025-12-19,GLGOLD,0.1,0,0.1
+macro_core,2025-12-19,UKBO10,0.1,0,0.1
+macro_core,2025-12-19,USBO10,0.3,0,0.3
+macro_core,2025-12-19,USEQCD,0.1,0,0.1
+macro_core,2025-12-19,USEQMA,0.3,0.05,0.35
+macro_core,2025-12-19,CHEQMA,0,-0.05,-0.05

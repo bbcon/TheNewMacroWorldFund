@@ -177,3 +177,4 @@ readr::write_csv(latest_weights, opts$weights_log)
 
 message("Portfolio returns written to ", opts$output)
 message("Latest weights snapshot written to ", opts$weights_log)
+

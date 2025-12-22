@@ -12,3 +12,5 @@ Keep scripts idempotent and rely on configs under `config/` rather than hard-cod
 - `R/fetch_yahoo_data.R` – refresh ETF prices in `data/raw/yahoo/`.
 - `R/build_taa_portfolio.R` – merge SAA + TAA weights into portfolio returns and weight snapshots.
 - `R/trade_performance.R` – generate per-trade analytics (spread returns, drawdowns) and write them to `data/outputs/performance/trades/`.
+- `R/run_all_trade_perf.R` – read `data/reference/taa_weights_history.csv` (rows with `trade_id`), infer long/short legs, and call `trade_performance.R` for each trade.
+- `run_all_trade_perf.sh` – parse TAA trade logs (`logs/tactical_trades/taa-*.md`) and run `trade_performance.R` for each.
