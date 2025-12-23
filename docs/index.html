@@ -373,11 +373,20 @@
         container.innerHTML = `<div class="empty">No trade narratives found.</div>`;
         return;
       }
-      const rows = narratives.sort((a, b) => (a.trade_id || "").localeCompare(b.trade_id || ""));
+      const rows = narratives.sort((a, b) => {
+        const aOpen = !a.exit_date || a.exit_date.toLowerCase() === "open";
+        const bOpen = !b.exit_date || b.exit_date.toLowerCase() === "open";
+        if (aOpen && !bOpen) return -1;
+        if (!aOpen && bOpen) return 1;
+        const aDate = a.exit_date ? new Date(a.exit_date).getTime() : 0;
+        const bDate = b.exit_date ? new Date(b.exit_date).getTime() : 0;
+        return bDate - aDate;
+      });
       container.innerHTML = rows.map(r => `
         <details>
           <summary>${r.trade_id} · ${r.title || "Trade rationale"}</summary>
           <p class="muted-small">${r.rationale || "No rationale provided."}</p>
+          <p class="muted-small"><strong>Entry:</strong> ${r.entry_date || "—"} · <strong>Exit:</strong> ${r.exit_date || "Open"}</p>
           <p class="muted-small"><strong>Exit decision:</strong> ${r.exit_decision || "Not provided."}</p>
         </details>
       `).join("");

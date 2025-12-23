@@ -45,6 +45,18 @@ parse_md <- function(path) {
     str_replace(regex(".*Trade ID:\\s*", ignore_case = TRUE), "") %>%
     str_trim() else NA_character_
 
+  entry_line <- lines[str_detect(lines, regex("Entry Date", ignore_case = TRUE))][1]
+  entry_date <- if (!is.na(entry_line)) entry_line %>%
+    str_replace_all("[*`]", "") %>%
+    str_replace(regex(".*Entry Date:\\s*", ignore_case = TRUE), "") %>%
+    str_trim() else NA_character_
+
+  exit_line <- lines[str_detect(lines, regex("Exit Date", ignore_case = TRUE))][1]
+  exit_date <- if (!is.na(exit_line)) exit_line %>%
+    str_replace_all("[*`]", "") %>%
+    str_replace(regex(".*Exit Date:\\s*", ignore_case = TRUE), "") %>%
+    str_trim() else NA_character_
+
   rationale <- extract_section(txt, "Thesis")
   exit_line <- lines[str_detect(lines, regex("Exit rationale", ignore_case = TRUE))]
   exit_decision <- if (length(exit_line)) {
@@ -58,7 +70,9 @@ parse_md <- function(path) {
     trade_id = trade_id,
     title = title,
     rationale = rationale,
-    exit_decision = exit_decision
+    exit_decision = exit_decision,
+    entry_date = entry_date,
+    exit_date = exit_date
   )
 }
 
