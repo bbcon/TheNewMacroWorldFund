@@ -89,7 +89,7 @@
       margin-bottom: 8px;
     }
     details p { margin: 6px 0; }
-    details ul { margin: 6px 0 0 18px; }
+    details ul { margin: 6px 0 0 18px; padding-left: 16px; list-style: disc; }
     summary {
       cursor: pointer;
       font-weight: 600;
@@ -195,7 +195,7 @@
 
     function formatNarrative(text) {
       if (!text) return "<span class=\"muted-small\">No rationale provided.</span>";
-      const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       if (!lines.length) return "<span class=\"muted-small\">No rationale provided.</span>";
       let html = [];
       let bullets = [];
@@ -206,8 +206,9 @@
         }
       };
       lines.forEach(line => {
-        if (line.startsWith("- ")) {
-          bullets.push(line.slice(2));
+        const bulletMatch = line.match(/^[-*]\s+(.*)/);
+        if (bulletMatch) {
+          bullets.push(bulletMatch[1]);
         } else {
           flushBullets();
           html.push(`<p>${escapeHtml(line)}</p>`);
