@@ -28,8 +28,7 @@ extract_section <- function(text, section_name) {
   if (!str_detect(text, pattern)) return(NA_character_)
   after <- str_split(text, pattern, n = 2)[[1]][2]
   before <- str_split(after, "\\n##\\s+", n = 2)[[1]][1]
-  before <- str_replace_all(before, "\n", " ")
-  str_squish(before)
+  str_trim(before)
 }
 
 parse_md <- function(path) {

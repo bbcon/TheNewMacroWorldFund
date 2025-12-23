@@ -88,6 +88,8 @@
       background: #f8fafc;
       margin-bottom: 8px;
     }
+    details p { margin: 6px 0; }
+    details ul { margin: 6px 0 0 18px; }
     summary {
       cursor: pointer;
       font-weight: 600;
@@ -179,6 +181,40 @@
         acc[k].push(item);
         return acc;
       }, {});
+    }
+
+    const escapeHtml = (str) => {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    };
+
+    function formatNarrative(text) {
+      if (!text) return "<span class=\"muted-small\">No rationale provided.</span>";
+      const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+      if (!lines.length) return "<span class=\"muted-small\">No rationale provided.</span>";
+      let html = [];
+      let bullets = [];
+      const flushBullets = () => {
+        if (bullets.length) {
+          html.push(`<ul>${bullets.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+          bullets = [];
+        }
+      };
+      lines.forEach(line => {
+        if (line.startsWith("- ")) {
+          bullets.push(line.slice(2));
+        } else {
+          flushBullets();
+          html.push(`<p>${escapeHtml(line)}</p>`);
+        }
+      });
+      flushBullets();
+      return html.join("");
     }
 
     function renderMetricCards(metrics) {
@@ -382,14 +418,18 @@
         const bDate = b.exit_date ? new Date(b.exit_date).getTime() : 0;
         return bDate - aDate;
       });
-      container.innerHTML = rows.map(r => `
-        <details>
-          <summary>${r.trade_id} · ${r.title || "Trade rationale"}</summary>
-          <p class="muted-small">${r.rationale || "No rationale provided."}</p>
-          <p class="muted-small"><strong>Entry:</strong> ${r.entry_date || "—"} · <strong>Exit:</strong> ${r.exit_date || "Open"}</p>
-          <p class="muted-small"><strong>Exit decision:</strong> ${r.exit_decision || "Not provided."}</p>
-        </details>
-      `).join("");
+      container.innerHTML = rows.map(r => {
+        const rationaleHtml = formatNarrative(r.rationale);
+        const exitHtml = formatNarrative(r.exit_decision);
+        return `
+          <details>
+            <summary>${escapeHtml(r.trade_id || "Trade")} · ${escapeHtml(r.title || "Trade rationale")}</summary>
+            <div class="muted-small"><strong>Entry:</strong> ${escapeHtml(r.entry_date || "—")} · <strong>Exit:</strong> ${escapeHtml(r.exit_date || "Open")}</div>
+            <div class="muted-small" style="margin-top:6px;"><strong>Rationale:</strong> ${rationaleHtml}</div>
+            <div class="muted-small" style="margin-top:6px;"><strong>Exit decision:</strong> ${exitHtml}</div>
+          </details>
+        `;
+      }).join("");
     }
 
     async function init() {
