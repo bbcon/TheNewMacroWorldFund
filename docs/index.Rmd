@@ -1,0 +1,336 @@
+---
+title: "Portfolio + TAA Dashboard"
+output:
+  html_document:
+    self_contained: false
+    theme: null
+    toc: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(jsonlite)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+library(DT)
+library(htmltools)
+library(markdown)
+library(scales)
+theme_set(theme_minimal(base_family = "Inter"))
+
+fmt_pct <- function(x, digits = 1) {
+  ifelse(is.na(x), "\u2014", sprintf(paste0("%.", digits, "f%%"), x * 100))
+}
+fmt_num <- function(x, digits = 2) {
+  ifelse(is.na(x), "\u2014", sprintf(paste0("%.", digits, "f"), x))
+}
+`%||%` <- function(x, y) {
+  if (is.null(x) || length(x) == 0 || (length(x) == 1 && (is.na(x) || x == ""))) y else x
+}
+
+safe_json <- function(path) {
+  if (!file.exists(path)) return(tibble())
+  tryCatch(as_tibble(fromJSON(path, simplifyDataFrame = TRUE)), error = function(e) tibble())
+}
+
+data_dir <- "data"
+portfolio <- safe_json(file.path(data_dir, "portfolio.json")) %>% mutate(date = as.Date(date))
+metrics <- safe_json(file.path(data_dir, "metrics.json"))
+drawdowns <- safe_json(file.path(data_dir, "drawdowns.json")) %>% mutate(date = as.Date(date))
+rolling <- safe_json(file.path(data_dir, "rolling.json")) %>% mutate(date = as.Date(date))
+attrib <- safe_json(file.path(data_dir, "attribution.json")) %>% mutate(date = as.Date(date))
+trades_summary <- safe_json(file.path(data_dir, "trades_summary.json")) %>% mutate(entry_date = as.Date(entry_date), exit_date = as.Date(exit_date))
+trades_equity <- safe_json(file.path(data_dir, "trades_equity.json")) %>% mutate(date = as.Date(date))
+trades_narratives <- safe_json(file.path(data_dir, "trades_narratives.json")) %>%
+  mutate(entry_date = as.character(entry_date), exit_date = as.character(exit_date))
+
+about_md <- if (file.exists("about.md")) paste(readLines("about.md"), collapse = "\n") else NULL
+contact_md <- if (file.exists("contact.md")) paste(readLines("contact.md"), collapse = "\n") else NULL
+```
+
+```{=html}
+<style>
+  :root {
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #0f172a;
+    background: #f8fafc;
+    line-height: 1.5;
+  }
+  body {
+    margin: 0;
+    padding: 24px;
+    max-width: 1180px;
+    margin-inline: auto;
+  }
+  .pill {
+    padding: 6px 12px;
+    background: #0f766e;
+    color: #ecfeff;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    margin-bottom: 16px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat .label { color: #475569; font-size: 13px; }
+  .stat .value { font-size: 22px; font-weight: 700; }
+  .flex {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 12px 0;
+    font-size: 14px;
+  }
+  details {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    margin-bottom: 8px;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+  }
+  .muted { color: #475569; }
+  .muted-small { color: #64748b; font-size: 13px; margin: 4px 0 0 0; }
+  .contact-wrap {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .contact-photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 999px;
+    object-fit: cover;
+    object-position: center 20%;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+</style>
+
+<header style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:16px;">
+  <div>
+    <h1 style="margin:0;font-size:28px;letter-spacing:-0.3px;">Portfolio + TAA Dashboard</h1>
+    <div class="muted">NAV, risk, attribution, and trade-level detail (data from R exports under <code>docs/data</code>).</div>
+  </div>
+  <span class="pill">Live Data</span>
+</header>
+```
+
+# Dashboard {.tabset}
+
+## Dashboard
+
+```{r metrics-cards, results='asis'}
+if (!nrow(metrics)) {
+  div(class = "empty", "No metrics found. Run the R exporters.") |> browsable()
+} else {
+  periods <- c("since_inception", paste0(format(Sys.Date(), "%Y"), "_ytd"))
+  strategies <- unique(metrics$strategy)
+  rows <- metrics %>% filter(strategy %in% strategies, period %in% periods)
+  card <- function(r) {
+    div(class = "card stat",
+        div(class = "label", sprintf("%s · %s", r$strategy, toupper(gsub("_", " ", r$period)))),
+        div(class = "value", fmt_pct(r$total_return, 2)),
+        div(class = "muted", sprintf("CAGR %s · Vol %s · Sharpe %s · MaxDD %s",
+                                     fmt_pct(r$cagr, 2), fmt_pct(r$vol, 2), fmt_num(r$sharpe, 2), fmt_pct(r$max_drawdown, 1)))
+    )
+  }
+  div(class = "grid", lapply(seq_len(nrow(rows)), function(i) card(rows[i, ]))) |> browsable()
+}
+```
+
+### NAV
+```{r nav-plot}
+if (!nrow(portfolio)) {
+  div(class = "empty", "No NAV data found.") |> browsable()
+} else {
+  p <- ggplot(portfolio, aes(x = date, y = nav, color = strategy)) +
+    geom_line() +
+    labs(x = NULL, y = "NAV", color = "Strategy") +
+    theme(legend.position = "bottom")
+  ggplotly(p, dynamicTicks = TRUE)
+}
+```
+
+### Drawdowns
+```{r drawdown-plot}
+if (!nrow(drawdowns)) {
+  div(class = "empty", "No drawdown data found.") |> browsable()
+} else {
+  p <- ggplot(drawdowns, aes(x = date, y = drawdown, color = strategy)) +
+    geom_line() +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    labs(x = NULL, y = "Drawdown", color = "Strategy") +
+    theme(legend.position = "bottom")
+  ggplotly(p, dynamicTicks = TRUE)
+}
+```
+
+### Rolling Metrics (63d)
+```{r rolling-plot}
+if (!nrow(rolling)) {
+  div(class = "empty", "No rolling metrics found.") |> browsable()
+} else {
+  p <- ggplot(rolling, aes(x = date, y = roll_63_sharpe, color = strategy)) +
+    geom_line() +
+    labs(x = NULL, y = "Roll Sharpe (63d)", color = "Strategy") +
+    theme(legend.position = "bottom")
+  ggplotly(p, dynamicTicks = TRUE)
+}
+```
+
+### Attribution (SAA vs TAA)
+```{r attrib-plot}
+if (!nrow(attrib)) {
+  div(class = "empty", "No attribution data found.") |> browsable()
+} else {
+  attrib_long <- attrib %>%
+    mutate(month = as.Date(paste0(substr(date, 1, 7), "-01"))) %>%
+    group_by(strategy, month) %>%
+    summarise(return_saa = sum(return_saa, na.rm = TRUE),
+              return_taa = sum(return_taa, na.rm = TRUE),
+              .groups = "drop") %>%
+    pivot_longer(c(return_saa, return_taa), names_to = "bucket", values_to = "value")
+  p <- ggplot(attrib_long, aes(x = month, y = value, fill = bucket)) +
+    geom_col(position = "stack") +
+    facet_wrap(~ strategy, scales = "free_y") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    scale_x_date(labels = scales::date_format("%Y-%m"), date_breaks = "3 months") +
+    labs(x = NULL, y = "Return contribution", fill = NULL) +
+    theme(legend.position = "bottom")
+  ggplotly(p, dynamicTicks = TRUE)
+}
+```
+
+### Trade Equity Curve
+```{r trade-equity-plot}
+if (!nrow(trades_equity)) {
+  div(class = "empty", "No trade equity data found.") |> browsable()
+} else {
+  p <- ggplot(trades_equity, aes(x = date, y = nav)) +
+    geom_line(color = "#0ea5e9") +
+    labs(x = NULL, y = "Trade NAV") +
+    theme(legend.position = "none")
+  ggplotly(p, dynamicTicks = TRUE)
+}
+```
+
+### Trades Table
+```{r trades-table}
+if (!nrow(trades_summary)) {
+  div(class = "empty", "No trades found.") |> browsable()
+} else {
+  ret_col <- if ("spread_total_return" %in% names(trades_summary)) {
+    trades_summary$spread_total_return
+  } else if ("total_return" %in% names(trades_summary)) {
+    trades_summary$total_return
+  } else {
+    rep(NA_real_, nrow(trades_summary))
+  }
+  dd_col <- if ("max_drawdown" %in% names(trades_summary)) trades_summary$max_drawdown else rep(NA_real_, nrow(trades_summary))
+  sharpe_col <- if ("sharpe" %in% names(trades_summary)) trades_summary$sharpe else rep(NA_real_, nrow(trades_summary))
+  trades_tbl <- trades_summary %>%
+    arrange(desc(exit_date)) %>%
+    mutate(
+      entry_date = as.character(entry_date),
+      exit_date = ifelse(is.na(exit_date), "Open", as.character(exit_date)),
+      total_return = fmt_pct(ret_col, 2),
+      max_drawdown = fmt_pct(dd_col, 1),
+      sharpe = fmt_num(sharpe_col, 2)
+    ) %>%
+    select(Trade = trade_id, Entry = entry_date, Exit = exit_date,
+           Return = total_return, DD = max_drawdown, Sharpe = sharpe)
+  datatable(trades_tbl, rownames = FALSE, options = list(pageLength = 10, dom = "tip"), class = "stripe hover compact")
+}
+```
+
+### Trade Rationales
+```{r trade-rationales, results='asis'}
+render_text <- function(x) {
+  if (is.null(x) || is.na(x) || x == "") {
+    span(class = "muted-small", "No rationale provided.")
+  } else {
+    HTML(gsub("\n", "<br/>", htmlEscape(x)))
+  }
+}
+
+if (!nrow(trades_narratives)) {
+  div(class = "empty", "No trade narratives found.") |> browsable()
+} else {
+  rows <- trades_narratives %>%
+    mutate(exit_date_dt = suppressWarnings(as.Date(exit_date)),
+           exit_date_sort = ifelse(is.na(exit_date_dt), as.Date("9999-12-31"), exit_date_dt)) %>%
+    arrange(desc(exit_date_sort))
+  cards <- lapply(seq_len(nrow(rows)), function(i) {
+    r <- rows[i, ]
+    tags$details(
+      tags$summary(sprintf("%s · %s", r$trade_id %||% "Trade", r$title %||% "Trade rationale")),
+      tags$div(class = "muted-small",
+        tags$strong("Entry:"), " ", htmlEscape(r$entry_date %||% "\u2014"),
+        " · ", tags$strong("Exit:"), " ", htmlEscape(ifelse(is.na(r$exit_date), "Open", r$exit_date))
+      ),
+      tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Rationale:"), " ", render_text(r$rationale)),
+      tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Exit decision:"), " ", render_text(r$exit_decision))
+    )
+  })
+  div(class = "card", tags$h3(style = "margin:0 0 8px 0;", "Trade Rationales"), tagList(cards)) |> browsable()
+}
+```
+
+## About the Fund
+```{r about}
+if (is.null(about_md)) {
+  div(class = "empty", "About content not available.") |> browsable()
+} else {
+  div(class = "card",
+      tags$h3(style = "margin:0 0 8px 0;", "About the Fund"),
+      div(class = "muted-small", HTML(markdownToHTML(text = about_md, fragment.only = TRUE)))
+  ) |> browsable()
+}
+```
+
+## Contact
+```{r contact}
+photo <- if (file.exists("CV_BB_pic.jpg")) img(src = "CV_BB_pic.jpg", alt = "Brendan Berthold", class = "contact-photo") else NULL
+if (is.null(contact_md)) {
+  div(class = "empty", "Contact content not available.") |> browsable()
+} else {
+  div(class = "card",
+      tags$h3(style = "margin:0 0 8px 0;", "Contact"),
+      div(class = "contact-wrap",
+          div(class = "contact-photo-wrap", photo),
+          div(class = "muted-small", HTML(markdownToHTML(text = contact_md, fragment.only = TRUE)))
+      )
+  ) |> browsable()
+}
+```
