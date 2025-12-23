@@ -39,6 +39,25 @@
       color: #ecfeff;
       border-color: #0f766e;
     }
+    .contact-wrap {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .contact-photo {
+      width: 140px;
+      height: 140px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+    .contact-photo-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     header {
       display: flex;
       justify-content: space-between;
@@ -132,6 +151,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
     <button class="tab-btn" data-tab="about">About the Fund</button>
+    <button class="tab-btn" data-tab="contact">Contact</button>
   </div>
 
   <div id="dashboard-tab">
@@ -191,6 +211,18 @@
     <div class="card">
       <h3 style="margin:0 0 8px 0;">About the Fund</h3>
       <div id="about-content" class="muted-small"></div>
+    </div>
+  </div>
+
+  <div id="contact-tab" style="display:none;">
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">Contact</h3>
+      <div class="contact-wrap">
+        <div class="contact-photo-wrap">
+          <img src="./CV_BB_pic.jpg" alt="Brendan Berthold" class="contact-photo" />
+        </div>
+        <div id="contact-content" class="muted-small"></div>
+      </div>
     </div>
   </div>
 
@@ -500,6 +532,7 @@
       const buttons = document.querySelectorAll(".tab-btn");
       const dashboard = document.getElementById("dashboard-tab");
       const about = document.getElementById("about-tab");
+      const contact = document.getElementById("contact-tab");
       buttons.forEach(btn => {
         btn.addEventListener("click", () => {
           buttons.forEach(b => b.classList.remove("active"));
@@ -507,6 +540,7 @@
           const tab = btn.dataset.tab;
           dashboard.style.display = tab === "dashboard" ? "block" : "none";
           about.style.display = tab === "about" ? "block" : "none";
+          contact.style.display = tab === "contact" ? "block" : "none";
         });
       });
     }
@@ -542,6 +576,7 @@
       renderTradesTable(tradesSummary);
       renderTradeRationales(tradesNarratives);
       loadAbout();
+      loadContact();
     }
 
     async function loadAbout() {
@@ -552,6 +587,17 @@
         document.getElementById("about-content").innerHTML = renderMarkdown(md);
       } catch (e) {
         document.getElementById("about-content").innerHTML = '<div class="empty">About content not available.</div>';
+      }
+    }
+
+    async function loadContact() {
+      try {
+        const res = await fetch("./contact.md");
+        if (!res.ok) throw new Error("missing contact.md");
+        const md = await res.text();
+        document.getElementById("contact-content").innerHTML = renderMarkdown(md);
+      } catch (e) {
+        document.getElementById("contact-content").innerHTML = '<div class="empty">Contact content not available.</div>';
       }
     }
 
