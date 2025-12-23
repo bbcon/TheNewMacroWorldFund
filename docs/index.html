@@ -81,6 +81,20 @@
       padding: 12px 0;
       font-size: 14px;
     }
+    details {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      margin-bottom: 8px;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+    }
+    .muted-small { color: #64748b; font-size: 13px; margin: 4px 0 0 0; }
     a { color: #0f766e; text-decoration: none; }
   </style>
 </head>
@@ -137,6 +151,11 @@
         <tbody></tbody>
       </table>
     </div>
+  </div>
+
+  <div class="card" id="trade-rationales-card">
+    <h3 style="margin:0 0 8px 0;">Trade Rationales</h3>
+    <div id="trade-rationales"></div>
   </div>
 
   <script>
@@ -348,6 +367,22 @@
       `).join("");
     }
 
+    function renderTradeRationales(narratives) {
+      const container = document.getElementById("trade-rationales");
+      if (!narratives.length) {
+        container.innerHTML = `<div class="empty">No trade narratives found.</div>`;
+        return;
+      }
+      const rows = narratives.sort((a, b) => (a.trade_id || "").localeCompare(b.trade_id || ""));
+      container.innerHTML = rows.map(r => `
+        <details>
+          <summary>${r.trade_id} · ${r.title || "Trade rationale"}</summary>
+          <p class="muted-small">${r.rationale || "No rationale provided."}</p>
+          <p class="muted-small"><strong>Exit decision:</strong> ${r.exit_decision || "Not provided."}</p>
+        </details>
+      `).join("");
+    }
+
     async function init() {
       const [
         portfolio,
@@ -356,7 +391,8 @@
         rolling,
         attribution,
         tradesSummary,
-        tradesEquity
+        tradesEquity,
+        tradesNarratives
       ] = await Promise.all([
         fetchJSON("./data/portfolio.json"),
         fetchJSON("./data/metrics.json"),
@@ -364,7 +400,8 @@
         fetchJSON("./data/rolling.json"),
         fetchJSON("./data/attribution.json"),
         fetchJSON("./data/trades_summary.json"),
-        fetchJSON("./data/trades_equity.json")
+        fetchJSON("./data/trades_equity.json"),
+        fetchJSON("./data/trades_narratives.json")
       ]);
 
       renderMetricCards(metrics);
@@ -374,6 +411,7 @@
       renderAttribChart(document.getElementById("attrib-chart"), attribution);
       renderTradeEquity(document.getElementById("trade-equity-chart"), tradesEquity);
       renderTradesTable(tradesSummary);
+      renderTradeRationales(tradesNarratives);
     }
 
     init();

@@ -1,0 +1,20 @@
+[
+  {
+    "trade_id": "TAA-2024-01",
+    "title": "Trade Log: US Equities OW vs USD Cash",
+    "rationale": "- Setup: markets appeared to overreact to the short-term economic fallout risk from the Liberation Day tariffs; US equity beta looked oversold relative to medium-term earnings support. - Macro triggers: expectation that any tariff-related demand hit would take time to appear in data, while positioning was light after the shock. - Risks / invalidation: genuine demand shock showing up earlier than expected, or a policy response that tightened financial conditions faster than priced.",
+    "exit_decision": "chose to head to the sidelines ahead of NVDA earnings (binary outcome with meaningful downside if AI sentiment rolled over) and to lock the tariff-driven rebound."
+  },
+  {
+    "trade_id": "TAA-2024-02",
+    "title": "Trade Log: 10Y Gilts OW vs USD Cash",
+    "rationale": "- Setup: UK policy rates are pinned near restrictive levels that the real economy cannot tolerate indefinitely; long Gilts embed fat risk premia. - Macro triggers: expectation of slowing UK data and a turn in BoE rhetoric as inflation normalizes, compressing term premium on the 10Y point. - Risks / invalidation: sticky services inflation, GBP devaluation that forces higher term premia, or fiscal slippage that re-prices Gilts wider.",
+    "exit_decision": "Pending; trade is intended as a slower-burn macro mean reversion."
+  },
+  {
+    "trade_id": "TAA-LONGUSvsCN",
+    "title": "Trade Log: OW US vs UW China Equity",
+    "rationale": "- Setup: US large-cap earnings revisions and liquidity backdrop outpace China, while CN still faces policy/FX overhangs; relative trend favors US. - Macro triggers: sustained US EPS upgrades and stable USD liquidity vs. fading CN credit impulse. - Risks / invalidation: CN policy surprise that restores growth, USD spike that crimps US risk appetite, or US tech leadership unwind.",
+    "exit_decision": "Planned 2025-11-15 or earlier if US/CN relative trend breaks 200d or CN stimulus forces relative rerate."
+  }
+]
