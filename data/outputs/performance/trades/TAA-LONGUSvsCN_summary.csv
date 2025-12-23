@@ -1,0 +1,2 @@
+trade_id,long_ticker,short_ticker,entry_date,exit_date,days_held,long_total_return,short_total_return,spread_total_return,max_drawdown
+TAA-LONGUSvsCN,USEQMA,CNEQMA,2024-02-01,2025-12-19,474,0.41044032023326404,0.7361337952597931,-0.2849465851996352,-0.3830726975841534

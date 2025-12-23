@@ -40,9 +40,8 @@ run_trade_performance <- function(trade_id,
                                   cash_ticker = "CASH") {
   if (is.null(trade_id) || trade_id == "") stop("trade_id is required")
   if (is.null(long_ticker) || long_ticker == "") stop("long_ticker is required")
-  if (is.null(entry_date) || entry_date == "") stop("entry_date is required")
-
   entry_date <- lubridate::as_date(entry_date)
+  if (is.na(entry_date)) stop("entry_date is required")
   exit_date <- ifelse(is.na(exit_date) || exit_date == "", NA, lubridate::as_date(exit_date))
 
   long_df <- read_price_returns(long_ticker, price_dir, cash_ticker)
