@@ -18,6 +18,27 @@
       max-width: 1180px;
       margin-inline: auto;
     }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #0f172a;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    }
+    .tab-btn.active {
+      background: #0f766e;
+      color: #ecfeff;
+      border-color: #0f766e;
+    }
     header {
       display: flex;
       justify-content: space-between;
@@ -108,56 +129,69 @@
     </div>
     <span class="pill">Live Data</span>
   </header>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="about">About the Fund</button>
+  </div>
 
-  <div class="card grid" id="metric-cards"></div>
+  <div id="dashboard-tab">
+    <div class="card grid" id="metric-cards"></div>
 
-  <div class="flex">
-    <div class="card">
-      <h3 style="margin:0 0 8px 0;">NAV</h3>
-      <canvas id="nav-chart" height="220"></canvas>
+    <div class="flex">
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">NAV</h3>
+        <canvas id="nav-chart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">Drawdowns</h3>
+        <canvas id="dd-chart" height="220"></canvas>
+      </div>
     </div>
+
     <div class="card">
-      <h3 style="margin:0 0 8px 0;">Drawdowns</h3>
-      <canvas id="dd-chart" height="220"></canvas>
+      <h3 style="margin:0 0 8px 0;">Rolling Metrics (63d)</h3>
+      <canvas id="rolling-chart" height="200"></canvas>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">Attribution (SAA vs TAA)</h3>
+      <canvas id="attrib-chart" height="220"></canvas>
+    </div>
+
+    <div class="flex">
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">Trade Equity Curve</h3>
+        <canvas id="trade-equity-chart" height="200"></canvas>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">Trades</h3>
+        <table id="trades-table">
+          <thead>
+            <tr>
+              <th>Trade</th>
+              <th>Entry</th>
+              <th>Exit</th>
+              <th>Return</th>
+              <th>DD</th>
+              <th>Sharpe</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="trade-rationales-card">
+      <h3 style="margin:0 0 8px 0;">Trade Rationales</h3>
+      <div id="trade-rationales"></div>
     </div>
   </div>
 
-  <div class="card">
-    <h3 style="margin:0 0 8px 0;">Rolling Metrics (63d)</h3>
-    <canvas id="rolling-chart" height="200"></canvas>
-  </div>
-
-  <div class="card">
-    <h3 style="margin:0 0 8px 0;">Attribution (SAA vs TAA)</h3>
-    <canvas id="attrib-chart" height="220"></canvas>
-  </div>
-
-  <div class="flex">
+  <div id="about-tab" style="display:none;">
     <div class="card">
-      <h3 style="margin:0 0 8px 0;">Trade Equity Curve</h3>
-      <canvas id="trade-equity-chart" height="200"></canvas>
+      <h3 style="margin:0 0 8px 0;">About the Fund</h3>
+      <div id="about-content" class="muted-small"></div>
     </div>
-    <div class="card">
-      <h3 style="margin:0 0 8px 0;">Trades</h3>
-      <table id="trades-table">
-        <thead>
-          <tr>
-            <th>Trade</th>
-            <th>Entry</th>
-            <th>Exit</th>
-            <th>Return</th>
-            <th>DD</th>
-            <th>Sharpe</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card" id="trade-rationales-card">
-    <h3 style="margin:0 0 8px 0;">Trade Rationales</h3>
-    <div id="trade-rationales"></div>
   </div>
 
   <script>
@@ -216,6 +250,35 @@
       });
       flushBullets();
       return html.join("");
+    }
+
+    function renderMarkdown(md) {
+      if (!md) return "";
+      const lines = md.split(/\r?\n/);
+      const out = [];
+      let inList = false;
+      const closeList = () => { if (inList) { out.push("</ul>"); inList = false; } };
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) { closeList(); return; }
+        const listMatch = trimmed.match(/^[-*]\s+(.*)/);
+        const h1 = trimmed.match(/^#\s+(.*)/);
+        const h2 = trimmed.match(/^##\s+(.*)/);
+        const h3 = trimmed.match(/^###\s+(.*)/);
+        if (h1) { closeList(); out.push(`<h2>${escapeHtml(h1[1])}</h2>`); return; }
+        if (h2) { closeList(); out.push(`<h3>${escapeHtml(h2[1])}</h3>`); return; }
+        if (h3) { closeList(); out.push(`<h4>${escapeHtml(h3[1])}</h4>`); return; }
+        if (listMatch) {
+          if (!inList) { out.push("<ul>"); inList = true; }
+          out.push(`<li>${escapeHtml(listMatch[1])}</li>`);
+          return;
+        }
+        closeList();
+        const bolded = escapeHtml(trimmed).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+        out.push(`<p>${bolded}</p>`);
+      });
+      closeList();
+      return out.join("");
     }
 
     function renderMetricCards(metrics) {
@@ -433,7 +496,23 @@
       }).join("");
     }
 
+    function wireTabs() {
+      const buttons = document.querySelectorAll(".tab-btn");
+      const dashboard = document.getElementById("dashboard-tab");
+      const about = document.getElementById("about-tab");
+      buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          buttons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          const tab = btn.dataset.tab;
+          dashboard.style.display = tab === "dashboard" ? "block" : "none";
+          about.style.display = tab === "about" ? "block" : "none";
+        });
+      });
+    }
+
     async function init() {
+      wireTabs();
       const [
         portfolio,
         metrics,
@@ -462,6 +541,18 @@
       renderTradeEquity(document.getElementById("trade-equity-chart"), tradesEquity);
       renderTradesTable(tradesSummary);
       renderTradeRationales(tradesNarratives);
+      loadAbout();
+    }
+
+    async function loadAbout() {
+      try {
+        const res = await fetch("./about.md");
+        if (!res.ok) throw new Error("missing about.md");
+        const md = await res.text();
+        document.getElementById("about-content").innerHTML = renderMarkdown(md);
+      } catch (e) {
+        document.getElementById("about-content").innerHTML = '<div class="empty">About content not available.</div>';
+      }
     }
 
     init();
