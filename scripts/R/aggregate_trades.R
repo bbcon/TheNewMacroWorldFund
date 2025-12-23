@@ -27,6 +27,7 @@ option_list <- list(
                         help = "Directory where ggplot charts will be saved.")
 )
 
+# options
 opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
 
 if (!dir.exists(opts$trades_dir)) stop("Trades directory not found: ", opts$trades_dir)

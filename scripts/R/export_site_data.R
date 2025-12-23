@@ -63,3 +63,4 @@ jsonlite::write_json(trade_summary, file.path(opts$output_dir, "trades_summary.j
 jsonlite::write_json(trade_equity, file.path(opts$output_dir, "trades_equity.json"), auto_unbox = TRUE)
 
 message("Site data exported to ", opts$output_dir)
+
