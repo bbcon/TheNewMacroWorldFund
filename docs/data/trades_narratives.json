@@ -1,25 +1,5 @@
 [
   {
-    "trade_id": "TAA-2024-01",
-    "title": "Trade Log: US Equities OW vs USD Cash",
-    "rationale": "- Setup: markets appeared to overreact to the short-term economic fallout risk from the Liberation Day tariffs; US equity beta looked oversold relative to medium-term earnings support.\n- Macro triggers: expectation that any tariff-related demand hit would take time to appear in data, while positioning was light after the shock.\n- Risks / invalidation: genuine demand shock showing up earlier than expected, or a policy response that tightened financial conditions faster than priced.",
-    "exit_decision": "chose to head to the sidelines ahead of NVDA earnings (binary outcome with meaningful downside if AI sentiment rolled over) and to lock the tariff-driven rebound.",
-    "entry_date": "2024-04-25",
-    "exit_date": "2024-11-15",
-    "key_takeaways": "narrative trades tied to single catalysts should have explicit event exits; monitor AI leadership concentration when running equity beta risk.",
-    "learning_outcomes": null
-  },
-  {
-    "trade_id": "TAA-2024-02",
-    "title": "Trade Log: 10Y Gilts OW vs USD Cash",
-    "rationale": "- Setup: UK policy rates are pinned near restrictive levels that the real economy cannot tolerate indefinitely; long Gilts embed fat risk premia.\n- Macro triggers: expectation of slowing UK data and a turn in BoE rhetoric as inflation normalizes, compressing term premium on the 10Y point.\n- Risks / invalidation: sticky services inflation, GBP devaluation that forces higher term premia, or fiscal slippage that re-prices Gilts wider.",
-    "exit_decision": "Pending; trade is intended as a slower-burn macro mean reversion.",
-    "entry_date": "2024-05-15",
-    "exit_date": "Open",
-    "key_takeaways": null,
-    "learning_outcomes": null
-  },
-  {
     "trade_id": "TAA-2025-LiberationDay_LongUS",
     "title": "Trade Log: US Equities OW vs USD Cash",
     "rationale": "- Setup: Recession fears driven by US tariffs policies are warranted, but negative impacts of trade policy likely to take more time to materialise in the data given the inertia of the economy and the strong nominal growth environment. Tariffs inflation fears overstated.\n- Macro triggers: expectation that any tariff-related demand hit would take time to appear in data, while positioning was light after the shock.\n- Risks / invalidation: (initially) genuine negative supply shock showing up earlier than expected, or further escalation in rhethoric between the US and its trading partners. (through the year) clear disappointment around AI.",
@@ -30,12 +10,22 @@
     "learning_outcomes": "Over-reaction of markets is a real phenomenon; useful to cross-check positioning and identify where the prevailing market narrative can fall short and be invalidated (in this case: tariffs don't necessarily translate to higher inflation (you need demand for inflation to go up sustainably), and that the economy shows a large degree of inertia). As a general principle, fearmongerers are generally wrong, and don't underestimate the US."
   },
   {
-    "trade_id": "TAA-LONGUSvsCN",
-    "title": "Trade Log: OW US vs UW China Equity",
-    "rationale": "- Setup: US large-cap earnings revisions and liquidity backdrop outpace China, while CN still faces policy/FX overhangs; relative trend favors US.\n- Macro triggers: sustained US EPS upgrades and stable USD liquidity vs. fading CN credit impulse.\n- Risks / invalidation: CN policy surprise that restores growth, USD spike that crimps US risk appetite, or US tech leadership unwind.",
-    "exit_decision": "Planned 2025-11-15 or earlier if US/CN relative trend breaks 200d or CN stimulus forces relative rerate.",
-    "entry_date": "2024-02-01",
+    "trade_id": "TAA-2025-LongBunds",
+    "title": "Trade Log: 10Y Bunds OW vs USD Cash",
+    "rationale": "- Setup: ECB was widely expected to stay on hold, but softening growth implied a lower forward path for rates; euro strength was expected to push the ECB toward a more dovish stance to avoid overtightening.\n- Macro triggers: follow-through downside surprises in euro area activity data and confirmation of a patient ECB stance that would allow Bund yields to compress.\n- Risks / invalidation: ECB proving more hawkish than priced, fiscal slippage lifting term premia, or Bunds selling off alongside risk assets (questioning their defensive role).",
+    "exit_decision": "ECB guidance remained firmer than expected and fiscal pressures kept term premia sticky; Bunds cheapened even during risk-off pulses, undermining the defensive narrative. Seasonal technicals pointed to more pain, so the position was cut to avoid bleed.",
+    "entry_date": "2024-05-15",
     "exit_date": "2025-11-15",
+    "key_takeaways": "structural case for lower Bund yields remains, but the short-term setup failed—hawkish ECB tone plus fiscal expectations outweighed growth softness.",
+    "learning_outcomes": null
+  },
+  {
+    "trade_id": "TAA-2024-02",
+    "title": "Trade Log: 10Y Gilts OW vs USD Cash",
+    "rationale": "- Setup: UK economy cannot tolerate such high rates indefinitely. Inflation remains high, but focus from the BoE is expected to gradually move towards the employment situation. Fiscal risk premia already largely embedded in current yield levels suggest positive assymmetry in bond prices.\n- Macro triggers: expectation of slowing UK data and a turn in BoE rhetoric as inflation normalizes, compressing term premium on the 10Y point.\n- Risks / invalidation: reacceleration of inflation (not only sticky prices which are expected), or fiscal slippage that re-prices Gilts wider.",
+    "exit_decision": "Pending; gitls have shown signs of weaknesses. Positive carry makes this trade easy to hold.",
+    "entry_date": "2024-05-15",
+    "exit_date": "Open",
     "key_takeaways": null,
     "learning_outcomes": null
   }
