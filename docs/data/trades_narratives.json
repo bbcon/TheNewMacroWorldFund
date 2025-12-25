@@ -16,6 +16,14 @@
     "exit_date": "Open"
   },
   {
+    "trade_id": "TAA-2025-LiberationDay_LongUS",
+    "title": "Trade Log: US Equities OW vs USD Cash",
+    "rationale": "- Setup: Recession fears driven by US tariffs policies are warranted, but negative impacts of trade policy likely to take more time to materialise in the data given the inertia of the economy and the strong nominal growth environment. Tariffs inflation fears overstated.\n- Macro triggers: expectation that any tariff-related demand hit would take time to appear in data, while positioning was light after the shock.\n- Risks / invalidation: (initially) genuine negative supply shock showing up earlier than expected, or further escalation in rhethoric between the US and its trading partners. (through the year) clear disappointment around AI.",
+    "exit_decision": "chose to head to the sidelines ahead of NVidia earnings (binary outcome with meaningful downside if AI sentiment rolled over), and amid a potential rotation out of tech stocks as the AI theme catches its breath. Structurally, however, the AI theme likely to have further to run. May reconsider re-entering the market later.",
+    "entry_date": "2025-04-25",
+    "exit_date": "2025-11-15"
+  },
+  {
     "trade_id": "TAA-LONGUSvsCN",
     "title": "Trade Log: OW US vs UW China Equity",
     "rationale": "- Setup: US large-cap earnings revisions and liquidity backdrop outpace China, while CN still faces policy/FX overhangs; relative trend favors US.\n- Macro triggers: sustained US EPS upgrades and stable USD liquidity vs. fading CN credit impulse.\n- Risks / invalidation: CN policy surprise that restores growth, USD spike that crimps US risk appetite, or US tech leadership unwind.",

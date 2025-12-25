@@ -1,7 +1,7 @@
 effective_date,strategy,trade_id,ticker,weight,exit_date,comment
 2024-02-01,macro_core,TAA-LONGUSvsCN,USEQMA,0.05,2025-11-15,"OW US vs CN Equity"
 2024-02-01,macro_core,TAA-LONGUSvsCN,CNEQMA,-0.05,2025-11-15,"UW CN vs US Equity"
-2024-04-25,core_taa,TAA-2024-01,USEQMA,0.25,2024-11-15,"+25 bps SPY leg"
-2024-04-25,core_taa,TAA-2024-01,GLGOLD,-0.25,2024-11-15,"funding leg"
+2024-04-25,core_taa,TAA-2024-01,USEQMA,0.25,2025-11-15,"+25 bps SPY leg"
+2024-04-25,core_taa,TAA-2024-01,GLGOLD,-0.25,2025-11-15,"funding leg"
 2024-05-15,core_taa,TAA-2024-02,UKBO10,0.35,,"+35 bps IGLT leg"
 2024-05-15,core_taa,TAA-2024-02,GLGOLD,-0.35,,"funding leg"
