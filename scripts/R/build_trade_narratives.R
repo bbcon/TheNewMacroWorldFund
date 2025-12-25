@@ -31,6 +31,14 @@ extract_section <- function(text, section_name) {
   str_trim(before)
 }
 
+extract_label_value <- function(lines, label_regex) {
+  pattern <- regex(paste0("^\\s*[-*]\\s*(?:\\*\\*)?", label_regex, "(?:\\*\\*)?\\s*:\\s*"),
+                   ignore_case = TRUE)
+  match <- lines[str_detect(lines, pattern)]
+  if (!length(match)) return(NA_character_)
+  str_trim(str_replace(match[1], pattern, ""))
+}
+
 parse_md <- function(path) {
   txt <- readr::read_file(path)
   lines <- str_split(txt, "\n")[[1]]
@@ -38,32 +46,26 @@ parse_md <- function(path) {
   title_line <- lines[str_detect(lines, "^#")][1]
   title <- title_line %>% str_remove("^#\\s*") %>% str_trim()
 
-  trade_line <- lines[str_detect(lines, regex("Trade ID", ignore_case = TRUE))][1]
-  trade_id <- if (!is.na(trade_line)) trade_line %>%
-    str_replace_all("[*`]", "") %>%
-    str_replace(regex(".*Trade ID:\\s*", ignore_case = TRUE), "") %>%
-    str_trim() else NA_character_
+  trade_line <- extract_label_value(lines, "Trade ID")
+  trade_id <- ifelse(is.na(trade_line), NA_character_, trade_line %>% str_replace_all("[*`]", "") %>% str_trim())
 
-  entry_line <- lines[str_detect(lines, regex("Entry Date", ignore_case = TRUE))][1]
-  entry_date <- if (!is.na(entry_line)) entry_line %>%
-    str_replace_all("[*`]", "") %>%
-    str_replace(regex(".*Entry Date:\\s*", ignore_case = TRUE), "") %>%
-    str_trim() else NA_character_
+  entry_line <- extract_label_value(lines, "Entry Date")
+  entry_date <- ifelse(is.na(entry_line), NA_character_, entry_line %>% str_replace_all("[*`]", "") %>% str_trim())
 
-  exit_line <- lines[str_detect(lines, regex("Exit Date", ignore_case = TRUE))][1]
-  exit_date <- if (!is.na(exit_line)) exit_line %>%
-    str_replace_all("[*`]", "") %>%
-    str_replace(regex(".*Exit Date:\\s*", ignore_case = TRUE), "") %>%
-    str_trim() else NA_character_
+  exit_line <- extract_label_value(lines, "Exit Date")
+  exit_date <- ifelse(is.na(exit_line), NA_character_, exit_line %>% str_replace_all("[*`]", "") %>% str_trim())
 
   rationale <- extract_section(txt, "Thesis")
-  exit_line <- lines[str_detect(lines, regex("Exit rationale", ignore_case = TRUE))]
-  exit_decision <- if (length(exit_line)) {
-    exit_line[1] %>% str_replace(regex(".*[Ee]xit rationale:\\s*", ignore_case = TRUE), "") %>% str_trim()
+  exit_decision <- extract_label_value(lines, "Exit rationale")
+  exit_decision <- if (!is.na(exit_decision)) {
+    exit_decision
   } else {
     section <- extract_section(txt, "Outcome & Review")
     ifelse(is.na(section), NA_character_, section)
   }
+
+  key_takeaways <- extract_label_value(lines, "Key takeaways")
+  learning_outcomes <- extract_label_value(lines, "Learning outcome[s]?")
 
   list(
     trade_id = trade_id,
@@ -71,7 +73,9 @@ parse_md <- function(path) {
     rationale = rationale,
     exit_decision = exit_decision,
     entry_date = entry_date,
-    exit_date = exit_date
+    exit_date = exit_date,
+    key_takeaways = key_takeaways,
+    learning_outcomes = learning_outcomes
   )
 }
 

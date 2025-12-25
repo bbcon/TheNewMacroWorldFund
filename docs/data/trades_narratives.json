@@ -5,7 +5,9 @@
     "rationale": "- Setup: markets appeared to overreact to the short-term economic fallout risk from the Liberation Day tariffs; US equity beta looked oversold relative to medium-term earnings support.\n- Macro triggers: expectation that any tariff-related demand hit would take time to appear in data, while positioning was light after the shock.\n- Risks / invalidation: genuine demand shock showing up earlier than expected, or a policy response that tightened financial conditions faster than priced.",
     "exit_decision": "chose to head to the sidelines ahead of NVDA earnings (binary outcome with meaningful downside if AI sentiment rolled over) and to lock the tariff-driven rebound.",
     "entry_date": "2024-04-25",
-    "exit_date": "2024-11-15"
+    "exit_date": "2024-11-15",
+    "key_takeaways": "narrative trades tied to single catalysts should have explicit event exits; monitor AI leadership concentration when running equity beta risk.",
+    "learning_outcomes": null
   },
   {
     "trade_id": "TAA-2024-02",
@@ -13,7 +15,9 @@
     "rationale": "- Setup: UK policy rates are pinned near restrictive levels that the real economy cannot tolerate indefinitely; long Gilts embed fat risk premia.\n- Macro triggers: expectation of slowing UK data and a turn in BoE rhetoric as inflation normalizes, compressing term premium on the 10Y point.\n- Risks / invalidation: sticky services inflation, GBP devaluation that forces higher term premia, or fiscal slippage that re-prices Gilts wider.",
     "exit_decision": "Pending; trade is intended as a slower-burn macro mean reversion.",
     "entry_date": "2024-05-15",
-    "exit_date": "Open"
+    "exit_date": "Open",
+    "key_takeaways": null,
+    "learning_outcomes": null
   },
   {
     "trade_id": "TAA-2025-LiberationDay_LongUS",
@@ -21,7 +25,9 @@
     "rationale": "- Setup: Recession fears driven by US tariffs policies are warranted, but negative impacts of trade policy likely to take more time to materialise in the data given the inertia of the economy and the strong nominal growth environment. Tariffs inflation fears overstated.\n- Macro triggers: expectation that any tariff-related demand hit would take time to appear in data, while positioning was light after the shock.\n- Risks / invalidation: (initially) genuine negative supply shock showing up earlier than expected, or further escalation in rhethoric between the US and its trading partners. (through the year) clear disappointment around AI.",
     "exit_decision": "chose to head to the sidelines ahead of NVidia earnings (binary outcome with meaningful downside if AI sentiment rolled over), and amid a potential rotation out of tech stocks as the AI theme catches its breath. Structurally, however, the AI theme likely to have further to run. May reconsider re-entering the market later.",
     "entry_date": "2025-04-25",
-    "exit_date": "2025-11-15"
+    "exit_date": "2025-11-15",
+    "key_takeaways": "Initial tariff-related policy proved to be justified, though the rationale of the trade evolved over the year towards one of reaching exposure to the AI theme. The strength of the rebound was more than anticipated (which effectiveley benefitted the trade), in spite of recurrent light positioning from institutional investors. The retail 'buy-the-dip' mentality was noticeable.",
+    "learning_outcomes": "Over-reaction of markets is a real phenomenon; useful to cross-check positioning and identify where the prevailing market narrative can fall short and be invalidated (in this case: tariffs don't necessarily translate to higher inflation (you need demand for inflation to go up sustainably), and that the economy shows a large degree of inertia). As a general principle, fearmongerers are generally wrong, and don't underestimate the US."
   },
   {
     "trade_id": "TAA-LONGUSvsCN",
@@ -29,6 +35,8 @@
     "rationale": "- Setup: US large-cap earnings revisions and liquidity backdrop outpace China, while CN still faces policy/FX overhangs; relative trend favors US.\n- Macro triggers: sustained US EPS upgrades and stable USD liquidity vs. fading CN credit impulse.\n- Risks / invalidation: CN policy surprise that restores growth, USD spike that crimps US risk appetite, or US tech leadership unwind.",
     "exit_decision": "Planned 2025-11-15 or earlier if US/CN relative trend breaks 200d or CN stimulus forces relative rerate.",
     "entry_date": "2024-02-01",
-    "exit_date": "2025-11-15"
+    "exit_date": "2025-11-15",
+    "key_takeaways": null,
+    "learning_outcomes": null
   }
 ]
