@@ -43,7 +43,17 @@ run_trade_performance <- function(trade_id,
   if (is.null(entry_date) || is.na(entry_date)) stop("entry_date is required")
 
   entry_date <- lubridate::as_date(entry_date)
-  exit_date <- ifelse(is.na(exit_date) || exit_date == "", NA, lubridate::as_date(exit_date))
+  exit_date_input <- {
+    if (is.null(exit_date) || length(exit_date) == 0) {
+      NA
+    } else if (is.na(exit_date)) {
+      NA
+    } else if (is.character(exit_date) && exit_date == "") {
+      NA
+    } else {
+      lubridate::as_date(exit_date)
+    }
+  }
 
   long_df <- read_price_returns(long_ticker, price_dir, cash_ticker)
   if (nrow(long_df) == 0) {
@@ -64,8 +74,9 @@ run_trade_performance <- function(trade_id,
     stop("No return history for short ticker ", short_ticker)
   }
 
-  if (is.na(exit_date)) {
-    exit_date <- min(max(long_df$date), max(short_df$date), na.rm = TRUE)
+  exit_date_effective <- exit_date_input
+  if (is.na(exit_date_effective)) {
+    exit_date_effective <- min(max(long_df$date), max(short_df$date), na.rm = TRUE)
   }
 
   trade_returns <- long_df %>%
@@ -74,7 +85,7 @@ run_trade_performance <- function(trade_id,
       short_df %>% dplyr::rename(short_return = return),
       by = "date"
     ) %>%
-    dplyr::filter(date >= entry_date, date <= exit_date) %>%
+    dplyr::filter(date >= entry_date, date <= exit_date_effective) %>%
     dplyr::arrange(date) %>%
     dplyr::mutate(
       spread_return = long_return - short_return,
@@ -92,7 +103,7 @@ run_trade_performance <- function(trade_id,
     long_ticker = long_ticker,
     short_ticker = short_ticker,
     entry_date = entry_date,
-    exit_date = exit_date,
+    exit_date = exit_date_input,
     days_held = nrow(trade_returns),
     long_total_return = prod(1 + trade_returns$long_return, na.rm = TRUE) - 1,
     short_total_return = prod(1 + trade_returns$short_return, na.rm = TRUE) - 1,
