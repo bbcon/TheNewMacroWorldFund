@@ -14,7 +14,10 @@ option_list <- list(
                         help = "Directory containing trade log markdown files."),
   optparse::make_option(c("-o", "--output"), dest = "output",
                         default = "docs/data/trades_narratives.json",
-                        help = "Path where the JSON payload will be written.")
+                        help = "Path where the JSON payload will be written."),
+  optparse::make_option(c("-w", "--weights-file"), dest = "weights_file",
+                        default = "data/reference/taa_weights_history.csv",
+                        help = "CSV of TAA weights; if present, narratives are filtered to trade_ids found here.")
 )
 
 opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
@@ -81,6 +84,20 @@ parse_md <- function(path) {
 
 rows <- purrr::map(files, parse_md) %>% purrr::compact() %>%
   purrr::discard(~ is.null(.x$trade_id) || is.na(.x$trade_id) || .x$trade_id == "")
+
+if (file.exists(opts$weights_file)) {
+  trade_ids <- readr::read_csv(opts$weights_file, show_col_types = FALSE) %>%
+    dplyr::filter(!is.na(trade_id) & trade_id != "") %>%
+    dplyr::distinct(trade_id) %>%
+    dplyr::pull(trade_id)
+  if (length(trade_ids)) {
+    rows <- purrr::keep(rows, ~ .x$trade_id %in% trade_ids)
+  } else {
+    message("Weights file contains no trade_id rows: ", opts$weights_file)
+  }
+} else {
+  message("Weights file not found, proceeding without filtering: ", opts$weights_file)
+}
 
 if (length(rows) == 0) stop("No trade_id values found in markdown files under ", opts$input_dir)
 

@@ -24,7 +24,10 @@ option_list <- list(
                         help = "Parquet path for aggregated trade equity curve."),
   optparse::make_option(c("--figure-dir"), dest = "figure_dir",
                         default = "reports/figures",
-                        help = "Directory where ggplot charts will be saved.")
+                        help = "Directory where ggplot charts will be saved."),
+  optparse::make_option(c("-w", "--weights-file"), dest = "weights_file",
+                        default = "data/reference/taa_weights_history.csv",
+                        help = "CSV of TAA weights; if present, trades are filtered to ids found here.")
 )
 
 # options
@@ -37,6 +40,18 @@ if (!dir.exists(opts$figure_dir)) dir.create(opts$figure_dir, recursive = TRUE)
 
 summary_files <- list.files(opts$trades_dir, pattern = "_summary\\.csv$", full.names = TRUE)
 if (length(summary_files) == 0) stop("No trade summary files found in ", opts$trades_dir)
+
+trade_ids_from_weights <- NULL
+if (file.exists(opts$weights_file)) {
+  weight_df <- readr::read_csv(opts$weights_file, show_col_types = FALSE) %>%
+    dplyr::filter(!is.na(trade_id) & trade_id != "")
+  trade_ids_from_weights <- weight_df %>% dplyr::distinct(trade_id) %>% dplyr::pull(trade_id)
+  if (!length(trade_ids_from_weights)) {
+    message("Weights file contains no trade_id rows: ", opts$weights_file)
+  }
+} else {
+  message("Weights file not found, proceeding without filtering: ", opts$weights_file)
+}
 
 summaries <- purrr::map_dfr(summary_files, readr::read_csv, show_col_types = FALSE) %>%
   dplyr::mutate(entry_date = lubridate::as_date(entry_date),
@@ -52,6 +67,11 @@ daily <- purrr::map_dfr(daily_files, function(path) {
   dplyr::mutate(date = lubridate::as_date(date)) %>%
   dplyr::arrange(trade_id, date)
 
+if (!is.null(trade_ids_from_weights) && length(trade_ids_from_weights)) {
+  summaries <- summaries %>% dplyr::filter(trade_id %in% trade_ids_from_weights)
+  daily <- daily %>% dplyr::filter(trade_id %in% trade_ids_from_weights)
+}
+
 if (nrow(daily) == 0) stop("No daily trade files found in ", opts$trades_dir)
 
 metrics <- daily %>%
@@ -66,12 +86,13 @@ metrics <- daily %>%
   )
 
 summaries <- summaries %>%
-  dplyr::left_join(metrics, by = "trade_id") %>%
+  dplyr::left_join(metrics, by = "trade_id", suffix = c("", "_metrics")) %>%
   dplyr::mutate(
     max_drawdown = dplyr::coalesce(max_drawdown_recomputed, max_drawdown),
-    spread_total_return = dplyr::coalesce(total_return, spread_total_return)
+    spread_total_return = dplyr::coalesce(total_return, spread_total_return),
+    days_held = dplyr::coalesce(days_held_metrics, days_held)
   ) %>%
-  dplyr::select(-max_drawdown_recomputed, -total_return) %>%
+  dplyr::select(-max_drawdown_recomputed, -total_return, -days_held_metrics) %>%
   dplyr::relocate(vol, sharpe, max_drawdown, days_held, .after = spread_total_return)
 
 arrow::write_parquet(summaries, opts$summary_output)

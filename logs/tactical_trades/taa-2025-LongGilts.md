@@ -1,6 +1,6 @@
 # Trade Log: 10Y Gilts OW vs USD Cash
 
-- **Trade ID:** TAA-2024-02
+- **Trade ID:** TAA-2025-LongGilts
 - **Status:** Open
 - **Strategy Sleeve:** core_taa
 - **Entry Date:** 2024-05-15
