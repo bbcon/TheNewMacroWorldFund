@@ -22,8 +22,8 @@ It reflects **persistent macroeconomic forces** rather than cyclical or short-te
 The SAA is designed to capture **structural return drivers** in a world characterised by:
 - Rising capital intensity (energy, infrastructure, defence)
 - Geopolitical fragmentation
-- Increasing fiscal dominance
-- Technology-driven productivity shifts, led by AI and electrification
+- The coming era of fiscal dominance
+- Technology-driven productivity shifts, led by AI, climate change and the shift towards electrification
 
 Tactical Asset Allocation (TAA) decisions are implemented **around** this strategic backbone.
 
@@ -37,7 +37,7 @@ The SAA is anchored around the following long-run macro assumptions:
 Electricity demand is structurally rising, driven by AI, data centres, electrification of transport and heating, and energy security considerations. Grid infrastructure is the binding constraint of the transition.
 
 ### 2. Geopolitical Fragmentation
-The global economy is moving toward strategic blocs, increasing defence spending, reshoring, and the commodity intensity of growth.
+The global economy is moving toward strategic blocs, increasing defence spending, reshoring, and challenging business models.
 
 ### 3. Fiscal Dominance
 High public debt levels constrain monetary policy independence, increasing inflation volatility and reducing the likelihood of a return to structurally low real rates.
@@ -109,12 +109,12 @@ Relative to the benchmark, the SAA introduces **structural thematic overlays** a
 ### B. Regional Equity Rebalancing
 
 #### United States: Relative Underweight, Strategic Core
-- Reduce allocation from **50% → 40%**, while remaining the **largest regional exposure**
+- Reduce allocation from **50% → 45%**, while remaining the **largest regional exposure**
 
 **Narrative:**  
 The United States continues to dominate in frontier technologies, particularly AI, software, and platform-based industries. Its capacity to generate world-leading companies through innovation, creativity, and efficient capital allocation remains unparalleled. This structural strength justifies a **high absolute allocation** within the portfolio.
 
-The underweight reflects not a loss of confidence in US innovation, but a **relative macro rebalancing** in response to rising fiscal imbalances, geopolitical friction, and trade policy uncertainty.
+The underweight reflects not a loss of confidence in US innovation, but a **relative macro rebalancing** in response to rising fiscal imbalances, geopolitical friction, and trade policy uncertainty. Recent trade policies and overall approach to international policies are liquidating a lot of goodwill and reinforcing this trend.
 
 ---
 
@@ -122,15 +122,15 @@ The underweight reflects not a loss of confidence in US innovation, but a **rela
 - Increase allocation from **20% → 30%**
 
 **Narrative:**  
-China is a global engineering powerhouse and a leader across large segments of the electric stack. The combination of industrial scale, cost leadership, and under-ownership creates attractive long-term asymmetry.
+China is a global engineering powerhouse and a leader across large segments of the electric stack. The combination of industrial scale, cost leadership, and under-ownership creates attractive long-term asymmetry. Concerns about balance sheet recessions are justified, but the innovation capacity of the country is underappreciated.
 
 ---
 
 #### Europe: Neutral Allocation
-- Maintain European allocation unchanged
+- Reduce European allocation from **30% to 25%**
 
 **Narrative:**  
-While defence and infrastructure spending are rising, sustained conviction in a structural German fiscal regime shift remains limited at this stage.
+While defence and infrastructure spending are rising, sustained conviction in a structural German fiscal regime shift remains limited at this stage. The ongoing geopolitical restructuring and the rise of protectionist policies is further straining the export-driven business models of many European countries.
 
 ---
 
@@ -142,7 +142,7 @@ Maintain core exposure to developed-market sovereign bonds as:
 - Recession hedges
 - Volatility dampeners
 
-The traditional diversification role of fixed income will be regularly reviewed in light of accumulating evidence that supply-side shocks—driven by geopolitics, the energy transition, and climate change—may be more frequent and persistent than in the past, which could weaken the historical equity-bond relaitonship.
+The traditional diversification role of fixed income will be regularly reviewed in light of accumulating evidence that supply-side shocks—driven by geopolitics, the energy transition, and climate change—may be more frequent and persistent than in the past, which could weaken the historical equity-bond relationship.
 
 #### High Yield Credit (Macro Overlay)
 - Introduce **High Yield credit CDS exposure**
@@ -159,8 +159,6 @@ In a regime of fiscal dominance, deteriorating sovereign balance sheets have coi
   - Geopolitical stress
   - Monetary regime uncertainty
 
-- Add **High-Yield Commodity exposure (+4pp)**  
-  - Target: **10% within the commodity allocation**
 
 ---
 
