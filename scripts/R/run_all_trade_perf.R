@@ -24,13 +24,22 @@ if (nrow(weights) == 0) {
   stop("No trade_id rows found in ", weights_file)
 }
 
-trade_ids <- unique(weights$trade_id)
+trade_ids <- weights %>%
+  dplyr::distinct(trade_id) %>%
+  dplyr::pull(trade_id)
 
 for (tid in trade_ids) {
   rows <- weights %>% dplyr::filter(trade_id == tid)
 
-  entry_date <- suppressWarnings(lubridate::as_date(min(rows$effective_date)))
-  exit_chr <- rows$exit_date
+  eff_dates <- rows[["effective_date"]]
+  entry_candidates <- eff_dates[!is.na(eff_dates)]
+  entry_date <- if (length(entry_candidates)) {
+    suppressWarnings(lubridate::as_date(min(entry_candidates)))
+  } else {
+    NA
+  }
+
+  exit_chr <- rows[["exit_date"]]
   if (inherits(exit_chr, "Date")) exit_chr <- as.character(exit_chr)
   exit_chr <- trimws(exit_chr)
   exit_vals <- exit_chr[!is.na(exit_chr) & exit_chr != "" & exit_chr != "Open"]
@@ -43,7 +52,7 @@ for (tid in trade_ids) {
   long_ticker <- if (nrow(long_rows)) long_rows %>% dplyr::arrange(dplyr::desc(weight)) %>% dplyr::pull(ticker) %>% .[1] else NA
   short_ticker <- if (nrow(short_rows)) short_rows %>% dplyr::arrange(weight) %>% dplyr::pull(ticker) %>% .[1] else NA
 
-  weight_sum <- sum(rows$weight, na.rm = TRUE)
+  weight_sum <- sum(rows[["weight"]], na.rm = TRUE)
 
   missing <- c()
   if (is.na(entry_date)) missing <- c(missing, "entry_date")

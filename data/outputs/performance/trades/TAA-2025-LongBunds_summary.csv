@@ -1,0 +1,2 @@
+trade_id,long_ticker,short_ticker,entry_date,exit_date,days_held,long_total_return,short_total_return,spread_total_return,max_drawdown
+TAA-2025-LongBunds,GLGOLD,UKBO10,2024-05-15,2025-12-19,397,0.6455237094347857,0.051609431935566885,0.5545453188818155,-0.10244817173413223

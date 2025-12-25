@@ -38,9 +38,9 @@ run_trade_performance <- function(trade_id,
                                   price_dir = "data/raw/yahoo",
                                   output_dir = "data/outputs/performance/trades",
                                   cash_ticker = "CASH") {
-  if (is.null(trade_id) || trade_id == "") stop("trade_id is required")
-  if (is.null(long_ticker) || long_ticker == "") stop("long_ticker is required")
-  if (is.null(entry_date) || entry_date == "") stop("entry_date is required")
+  if (is.null(trade_id) || is.na(trade_id) || trade_id == "") stop("trade_id is required")
+  if (is.null(long_ticker) || is.na(long_ticker) || long_ticker == "") stop("long_ticker is required")
+  if (is.null(entry_date) || is.na(entry_date)) stop("entry_date is required")
 
   entry_date <- lubridate::as_date(entry_date)
   exit_date <- ifelse(is.na(exit_date) || exit_date == "", NA, lubridate::as_date(exit_date))
@@ -149,4 +149,3 @@ if (sys.nframe() == 0) {
     cash_ticker = opts$cash_ticker
   )
 }
-

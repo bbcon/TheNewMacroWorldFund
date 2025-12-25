@@ -128,7 +128,7 @@ attrib <- prices %>%
 
 arrow::write_parquet(attrib, opts$output)
 
-attribution_plot <- ggplot(attrib, aes(x = date)) +
+attribution_plot <- ggplot(attrib %>% filter(date>=today()-days(2*365)), aes(x = date)) +
   geom_col(aes(y = return_saa, fill = "SAA"), alpha = 0.7) +
   geom_col(aes(y = return_taa, fill = "TAA"), alpha = 0.7) +
   facet_wrap(~strategy, ncol = 1, scales = "free_y") +

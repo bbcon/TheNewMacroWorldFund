@@ -1,0 +1,2 @@
+trade_id,long_ticker,short_ticker,entry_date,exit_date,days_held,long_total_return,short_total_return,spread_total_return,max_drawdown
+TAA-2025-LiberationDay_LongUS,GLGOLD,USEQMA,2024-02-01,2025-12-19,460,0.9344766892002301,0.46501561282058446,0.26606114921453194,-0.2201539260705484
