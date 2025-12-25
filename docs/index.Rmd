@@ -45,7 +45,6 @@ trades_summary <- safe_json(file.path(data_dir, "trades_summary.json")) %>% muta
 trades_equity <- safe_json(file.path(data_dir, "trades_equity.json")) %>% mutate(date = as.Date(date))
 trades_narratives <- safe_json(file.path(data_dir, "trades_narratives.json")) %>%
   mutate(entry_date = as.character(entry_date), exit_date = as.character(exit_date))
-
 about_md <- if (file.exists("about.md")) paste(readLines("about.md"), collapse = "\n") else NULL
 contact_md <- if (file.exists("contact.md")) paste(readLines("contact.md"), collapse = "\n") else NULL
 ```
@@ -303,9 +302,9 @@ if (!nrow(trades_summary)) {
 
 ### Trade Rationales
 ```{r trade-rationales, results='asis'}
-render_text <- function(x) {
+render_text <- function(x, empty_msg = "No rationale provided.") {
   if (is.null(x) || is.na(x) || x == "") {
-    span(class = "muted-small", "No rationale provided.")
+    span(class = "muted-small", empty_msg)
   } else {
     HTML(gsub("\n", "<br/>", htmlEscape(x)))
   }
@@ -327,7 +326,9 @@ if (!nrow(trades_narratives)) {
         " · ", tags$strong("Exit:"), " ", htmlEscape(ifelse(is.na(r$exit_date), "Open", r$exit_date))
       ),
       tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Rationale:"), " ", render_text(r$rationale)),
-      tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Exit decision:"), " ", render_text(r$exit_decision))
+      tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Exit decision:"), " ", render_text(r$exit_decision)),
+      tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Key takeaways:"), " ", render_text(r$key_takeaways, "No key takeaways provided.")),
+      tags$div(class = "muted-small", style = "margin-top:6px;", tags$strong("Learning outcomes:"), " ", render_text(r$learning_outcomes, "No learning outcomes provided."))
     )
   })
   div(class = "card", tags$h3(style = "margin:0 0 8px 0;", "Trade Rationales"), tagList(cards)) |> browsable()
