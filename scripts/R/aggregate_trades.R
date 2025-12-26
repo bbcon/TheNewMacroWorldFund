@@ -45,9 +45,13 @@ trade_ids_from_weights <- NULL
 if (file.exists(opts$weights_file)) {
   weight_df <- readr::read_csv(opts$weights_file, show_col_types = FALSE) %>%
     dplyr::filter(!is.na(trade_id) & trade_id != "")
-  trade_ids_from_weights <- weight_df %>% dplyr::distinct(trade_id) %>% dplyr::pull(trade_id)
-  if (!length(trade_ids_from_weights)) {
-    message("Weights file contains no trade_id rows: ", opts$weights_file)
+  if ("trade_id" %in% names(weight_df)) {
+    trade_ids_from_weights <- weight_df %>% dplyr::distinct(trade_id) %>% dplyr::pull(trade_id)
+    if (!length(trade_ids_from_weights)) {
+      message("Weights file contains no trade_id rows: ", opts$weights_file)
+    }
+  } else {
+    message("Weights file missing trade_id column; skipping filter: ", opts$weights_file)
   }
 } else {
   message("Weights file not found, proceeding without filtering: ", opts$weights_file)
@@ -68,8 +72,15 @@ daily <- purrr::map_dfr(daily_files, function(path) {
   dplyr::arrange(trade_id, date)
 
 if (!is.null(trade_ids_from_weights) && length(trade_ids_from_weights)) {
-  summaries <- summaries %>% dplyr::filter(trade_id %in% trade_ids_from_weights)
-  daily <- daily %>% dplyr::filter(trade_id %in% trade_ids_from_weights)
+  missing_in_weights <- setdiff(unique(summaries$trade_id), trade_ids_from_weights)
+  if (length(missing_in_weights) > 0) {
+    message("Weights file missing trade_ids present in trades: ",
+            paste(missing_in_weights, collapse = ", "),
+            "; skipping weight-based filtering.")
+  } else {
+    summaries <- summaries %>% dplyr::filter(trade_id %in% trade_ids_from_weights)
+    daily <- daily %>% dplyr::filter(trade_id %in% trade_ids_from_weights)
+  }
 }
 
 if (nrow(daily) == 0) stop("No daily trade files found in ", opts$trades_dir)
