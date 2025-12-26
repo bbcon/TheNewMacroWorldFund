@@ -115,8 +115,17 @@ fx_series <- purrr::map(fx_entries, function(entry) {
 })
 
 fx_lookup <- purrr::map(fx_series, ~ .x) %>% setNames(map_chr(fx_series, "quote_currency"))
+cash_entries <- purrr::keep(universe, ~ .x$asset_class == "cash")
+non_fx_cash_entries <- purrr::discard(universe, ~ .x$asset_class %in% c("fx", "cash"))
 
-fetch_and_save <- function(entry) {
+load_cached_cash <- function(ticker, output_dir) {
+  cached_path <- file.path(output_dir, paste0(ticker, ".parquet"))
+  if (!file.exists(cached_path)) return(NULL)
+  message(sprintf("Loading cached cash series for %s from %s", ticker, cached_path))
+  arrow::read_parquet(cached_path)
+}
+
+fetch_and_save <- function(entry, cash_lookup = NULL) {
   ticker <- entry$ticker
   ds_ticker <- entry$datastream_ticker %||% ticker
   field <- entry$price_field %||% price_field
@@ -149,22 +158,19 @@ fetch_and_save <- function(entry) {
           return_usd = daily_return_local,
           price_usd = cumprod(1 + return_usd)
         )
-    } else {
-      fx_for_ccy <- fx_lookup[[currency]]
-      if (is.null(fx_for_ccy)) {
-        stop(sprintf("Missing FX pair for currency %s; add it to the universe as USD/%s", currency, currency))
-      }
-      if (!identical(fx_for_ccy$base_currency, "USD")) {
-        stop(sprintf("FX pair for %s must have base_currency USD to compute USD prices.", currency))
-      }
+    } else if (!is.null(cash_lookup) && !is.null(cash_lookup[["USD"]])) {
+      usd_cash <- cash_lookup[["USD"]] %>%
+        dplyr::select(date, usd_cash_return = daily_return_local)
+
       ts_df <- ts_df %>%
-        dplyr::left_join(fx_for_ccy$data, by = "date") %>%
+        dplyr::left_join(usd_cash, by = "date") %>%
         dplyr::mutate(
-          fx_return = fx_rate / dplyr::lag(fx_rate) - 1,
-          return_usd = (1 + daily_return_local) * (1 + tidyr::replace_na(fx_return, 0)) - 1,
+          return_usd = tidyr::replace_na(usd_cash_return, daily_return_local),
           price_usd = cumprod(1 + return_usd)
         ) %>%
-        dplyr::select(-fx_return)
+        dplyr::select(-usd_cash_return)
+    } else {
+      stop("USD cash curve is required to hedge non-USD cash series; fetch CASH_USD first.")
     }
   } else {
     if (entry$asset_class == "fx") {
@@ -173,6 +179,29 @@ fetch_and_save <- function(entry) {
           price_usd = price_local,
           return_usd = price_usd / dplyr::lag(price_usd) - 1
         )
+    } else if (entry$asset_class == "rates" && currency != "USD") {
+      if (is.null(cash_lookup) ||
+          is.null(cash_lookup[[currency]]) ||
+          is.null(cash_lookup[["USD"]])) {
+        stop(sprintf("Missing cash curves for hedging %s: need USD and %s cash series first.", ticker, currency))
+      }
+
+      local_cash <- cash_lookup[[currency]] %>%
+        dplyr::select(date, local_cash_return = daily_return_local)
+      usd_cash <- cash_lookup[["USD"]] %>%
+        dplyr::select(date, usd_cash_return = daily_return_local)
+
+      ts_df <- ts_df %>%
+        dplyr::mutate(return_local = price_local / dplyr::lag(price_local) - 1) %>%
+        dplyr::left_join(local_cash, by = "date") %>%
+        dplyr::left_join(usd_cash, by = "date") %>%
+        dplyr::mutate(
+          hedged_fx_carry = (1 + tidyr::replace_na(usd_cash_return, 0)) /
+            (1 + tidyr::replace_na(local_cash_return, 0)) - 1,
+          return_usd = (1 + tidyr::replace_na(return_local, 0)) * (1 + hedged_fx_carry) - 1,
+          price_usd = cumprod(1 + return_usd)
+        ) %>%
+        dplyr::select(-hedged_fx_carry)
     } else if (currency == "USD") {
       ts_df <- ts_df %>%
         dplyr::mutate(
@@ -206,7 +235,41 @@ fetch_and_save <- function(entry) {
   invisible(ts_df)
 }
 
-non_fx_entries <- purrr::discard(universe, ~ .x$asset_class == "fx")
-purrr::walk(non_fx_entries, fetch_and_save)
+cash_lookup <- list()
+if (length(cash_entries) > 0) {
+  usd_cash_entry <- purrr::detect(cash_entries, ~ (.x$currency %||% .x$quote_currency %||% "") == "USD")
+  if (!is.null(usd_cash_entry)) {
+    usd_cash_df <- tryCatch(
+      fetch_and_save(usd_cash_entry, cash_lookup = NULL),
+      error = function(e) {
+        message("USD cash fetch failed: ", conditionMessage(e), "; trying cached parquet...")
+        load_cached_cash(usd_cash_entry$ticker, opts$output_dir)
+      }
+    )
+    if (is.null(usd_cash_df)) stop("USD cash curve missing (both fetch and cached parquet failed); cannot hedge.")
+    cash_lookup[["USD"]] <- usd_cash_df
+  }
+
+  other_cash_entries <- purrr::discard(cash_entries, ~ (.x$currency %||% .x$quote_currency %||% "") == "USD")
+  if (length(other_cash_entries) > 0) {
+    other_results <- purrr::map(other_cash_entries, ~ tryCatch(
+      fetch_and_save(.x, cash_lookup),
+      error = function(e) {
+        message("Non-USD cash fetch failed for ", .x$ticker, ": ", conditionMessage(e), "; trying cached parquet...")
+        load_cached_cash(.x$ticker, opts$output_dir)
+      }
+    ))
+    other_lookup <- purrr::set_names(
+      other_results,
+      purrr::map_chr(other_cash_entries, ~ .x$currency %||% .x$quote_currency %||% "USD")
+    )
+    if (any(purrr::map_lgl(other_lookup, is.null))) {
+      stop("One or more non-USD cash curves missing (fetch + cached); cannot hedge rates.")
+    }
+    cash_lookup <- c(cash_lookup, other_lookup)
+  }
+}
+
+purrr::walk(non_fx_cash_entries, ~ fetch_and_save(.x, cash_lookup))
 
 message("Done.")
