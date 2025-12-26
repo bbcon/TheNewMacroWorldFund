@@ -9,9 +9,14 @@ suppressPackageStartupMessages({
 source(file.path("scripts", "R", "trade_performance.R"))
 
 weights_file <- Sys.getenv("TAA_WEIGHTS_FILE", unset = "data/reference/taa_weights_history.csv")
-price_dir <- Sys.getenv("PRICE_DIR", unset = "data/raw/yahoo")
+price_dir <- Sys.getenv("PRICE_DIR", unset = "data/raw/datastream")
 output_dir <- Sys.getenv("OUTPUT_DIR", unset = "data/outputs/performance/trades")
 cash_ticker <- Sys.getenv("CASH_TICKER", unset = "CASH")
+price_format <- tolower(Sys.getenv("PRICE_FORMAT", unset = "datastream"))
+
+if (!price_format %in% c("datastream", "yahoo")) {
+  stop("PRICE_FORMAT must be either 'datastream' or 'yahoo'")
+}
 
 if (!file.exists(weights_file)) {
   stop("Weights file not found: ", weights_file)
@@ -74,6 +79,7 @@ for (tid in trade_ids) {
     exit_date = exit_date,
     price_dir = price_dir,
     output_dir = output_dir,
-    cash_ticker = cash_ticker
+    cash_ticker = cash_ticker,
+    price_format = price_format
   )
 }

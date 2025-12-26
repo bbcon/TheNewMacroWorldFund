@@ -10,21 +10,44 @@ suppressPackageStartupMessages({
   library(tidyr)
 })
 
-read_price_returns <- function(ticker, price_dir, cash_ticker) {
+read_price_returns <- function(ticker, price_dir, cash_ticker, price_format = "datastream") {
   if (!dir.exists(price_dir)) {
     stop("Price directory not found: ", price_dir)
   }
   if (ticker == cash_ticker) {
     return(tibble::tibble(ticker = ticker, date = NA, return = NA) %>% dplyr::filter(FALSE))
   }
+
+  price_format <- tolower(price_format)
+  if (!price_format %in% c("datastream", "yahoo")) {
+    stop("price_format must be one of: datastream, yahoo")
+  }
+
   file_path <- file.path(price_dir, paste0(ticker, ".parquet"))
   if (!file.exists(file_path)) {
     stop("Missing price file for ticker ", ticker, ". Expected at ", file_path)
   }
-  arrow::read_parquet(file_path) %>%
+
+  df <- arrow::read_parquet(file_path) %>%
     dplyr::mutate(date = lubridate::as_date(date)) %>%
-    dplyr::arrange(date) %>%
-    dplyr::mutate(return = adjusted / dplyr::lag(adjusted) - 1) %>%
+    dplyr::arrange(date)
+
+  if (price_format == "datastream") {
+    if (!("price_usd" %in% names(df))) {
+      stop("Datastream price file missing price_usd: ", file_path)
+    }
+    df <- df %>%
+      dplyr::mutate(
+        return = if ("return_usd" %in% names(.)) return_usd else price_usd / dplyr::lag(price_usd) - 1
+      )
+  } else {
+    if (!("adjusted" %in% names(df))) {
+      stop("Yahoo price file missing adjusted column: ", file_path)
+    }
+    df <- df %>% dplyr::mutate(return = adjusted / dplyr::lag(adjusted) - 1)
+  }
+
+  df %>%
     dplyr::select(date, return) %>%
     dplyr::filter(!is.na(return)) %>%
     dplyr::mutate(ticker = ticker)
@@ -35,12 +58,18 @@ run_trade_performance <- function(trade_id,
                                   short_ticker = "CASH",
                                   entry_date,
                                   exit_date = NA,
-                                  price_dir = "data/raw/yahoo",
+                                  price_dir = "data/raw/datastream",
                                   output_dir = "data/outputs/performance/trades",
-                                  cash_ticker = "CASH") {
+                                  cash_ticker = "CASH",
+                                  price_format = "datastream") {
   if (is.null(trade_id) || is.na(trade_id) || trade_id == "") stop("trade_id is required")
   if (is.null(long_ticker) || is.na(long_ticker) || long_ticker == "") stop("long_ticker is required")
   if (is.null(entry_date) || is.na(entry_date)) stop("entry_date is required")
+
+  price_format <- tolower(price_format)
+  if (!price_format %in% c("datastream", "yahoo")) {
+    stop("price_format must be either 'datastream' or 'yahoo'")
+  }
 
   entry_date <- lubridate::as_date(entry_date)
   exit_date_input <- {
@@ -55,7 +84,7 @@ run_trade_performance <- function(trade_id,
     }
   }
 
-  long_df <- read_price_returns(long_ticker, price_dir, cash_ticker)
+  long_df <- read_price_returns(long_ticker, price_dir, cash_ticker, price_format)
   if (nrow(long_df) == 0) {
     stop("No return history for long ticker ", long_ticker)
   }
@@ -67,7 +96,7 @@ run_trade_performance <- function(trade_id,
       ticker = short_ticker
     )
   } else {
-    short_df <- read_price_returns(short_ticker, price_dir, cash_ticker)
+    short_df <- read_price_returns(short_ticker, price_dir, cash_ticker, price_format)
   }
 
   if (nrow(short_df) == 0) {
@@ -138,8 +167,11 @@ if (sys.nframe() == 0) {
     optparse::make_option(c("--exit"), dest = "exit_date", type = "character", default = NA,
                           help = "Exit date (YYYY-MM-DD). Omit for open trades."),
     optparse::make_option(c("-p", "--price-dir"), dest = "price_dir", type = "character",
-                          default = "data/raw/yahoo",
+                          default = "data/raw/datastream",
                           help = "Directory containing parquet price files."),
+    optparse::make_option(c("--price-format"), dest = "price_format", type = "character",
+                          default = "datastream",
+                          help = "Price format: datastream (price_usd/return_usd) or yahoo (adjusted)."),
     optparse::make_option(c("-o", "--output-dir"), dest = "output_dir", type = "character",
                           default = "data/outputs/performance/trades",
                           help = "Directory where trade analytics will be written."),
@@ -157,6 +189,7 @@ if (sys.nframe() == 0) {
     exit_date = opts$exit_date,
     price_dir = opts$price_dir,
     output_dir = opts$output_dir,
-    cash_ticker = opts$cash_ticker
+    cash_ticker = opts$cash_ticker,
+    price_format = opts$price_format
   )
 }
