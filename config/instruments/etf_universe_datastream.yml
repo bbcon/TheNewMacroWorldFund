@@ -1,0 +1,253 @@
+# Datastream universe for benchmark and SAA portfolios.
+# Fill in `datastream_ticker` with the Datastream mnemonic/chain. All weights are
+# expressed as % of total portfolio (not sleeve).
+
+data_source: datastream
+frequency: daily
+price_field: RI  # Datastream total return field
+adjust_prices: true
+
+universe:
+  # --- Regional equities (benchmark + SAA) ---
+  - ticker: USEQ_US
+    datastream_ticker: "S&PCOMP"
+    asset_class: equity
+    sleeve: equity_regional
+    region: US
+    currency: USD
+    role: US market-cap weighted equity (S&P 500 proxy)
+    benchmark_weight_pct: 27.5    # 55% equities * 50% US
+    saa_weight_pct: 19.8          # 44% regional equities * 45% US
+    start_date: 2010-01-01
+
+  - ticker: CNEQ_CN
+    datastream_ticker: "MSCHIN$"
+    asset_class: equity
+    sleeve: equity_regional
+    region: China
+    currency: USD
+    role: China broad equity exposure
+    benchmark_weight_pct: 11.0    # 55% equities * 20% China
+    saa_weight_pct: 13.2          # 44% regional equities * 30% China
+    start_date: 2010-01-01
+
+  - ticker: EUEQ_DE
+    datastream_ticker: "DAXINDX"
+    asset_class: equity
+    sleeve: equity_regional
+    region: Germany
+    currency: EUR
+    role: German equity exposure
+    benchmark_weight_pct: 5.445   # 55% * 30% Europe * 33%
+    saa_weight_pct: 3.63          # 44% * 25% Europe * 33%
+    start_date: 2010-01-01
+
+  - ticker: EUEQ_FR
+    datastream_ticker: "FRCAC40"
+    asset_class: equity
+    sleeve: equity_regional
+    region: France
+    currency: EUR
+    role: French equity exposure
+    benchmark_weight_pct: 5.445
+    saa_weight_pct: 3.63
+    start_date: 2010-01-01
+
+  - ticker: EUEQ_ES
+    datastream_ticker: "IBEX35I"
+    asset_class: equity
+    sleeve: equity_regional
+    region: Spain
+    currency: EUR
+    role: Spanish equity exposure
+    benchmark_weight_pct: 2.805
+    saa_weight_pct: 1.87
+    start_date: 2010-01-01
+
+  - ticker: EUEQ_IT
+    datastream_ticker: "FTSEMIB"
+    asset_class: equity
+    sleeve: equity_regional
+    region: Italy
+    currency: EUR
+    role: Italian equity exposure
+    benchmark_weight_pct: 2.805
+    saa_weight_pct: 1.87
+    start_date: 2010-01-01
+
+  # --- Thematic equities (SAA overlay only; 20% of equity sleeve = 11% total) ---
+  - ticker: THEME_GRID
+    datastream_ticker: "@GRID"
+    asset_class: equity
+    sleeve: thematic_equity
+    theme: electric_grid_infrastructure
+    region: Global
+    currency: USD
+    role: Electric grid infrastructure equities (First Trust Nasdaq Smart Grid)
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 4.4           # 11% total thematic * 40%
+    start_date: 2010-01-01
+
+  - ticker: THEME_SOLAR
+    datastream_ticker: "U:TAN"
+    asset_class: equity
+    sleeve: thematic_equity
+    theme: solar
+    region: Global
+    currency: USD
+    role: Solar ETF (Invesco)
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 2.2           # 11% total thematic * 20%
+    start_date: 2010-01-01
+
+  - ticker: THEME_COPPER_CL
+    datastream_ticker: "MSCHIL$"
+    asset_class: equity
+    sleeve: thematic_equity
+    theme: chile_copper
+    region: Chile
+    currency: USD
+    role: Chile/copper equities as copper proxy
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 2.2
+    start_date: 2010-01-01
+
+  - ticker: THEME_DEFENCE
+    datastream_ticker: "F3WDAD$"
+    asset_class: equity
+    sleeve: thematic_equity
+    theme: defence
+    region: Global
+    currency: USD
+    role: Defence/aerospace equities
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 2.2
+    start_date: 2010-01-01
+
+  # --- Sovereign bonds ---
+  - ticker: USBO10
+    datastream_ticker: "BMUS10Y"
+    asset_class: rates
+    sleeve: sovereign_core
+    region: US
+    currency: USD
+    role: US Treasuries 10y
+    benchmark_weight_pct: 17.5    # 35% bonds * 50% US
+    saa_weight_pct: 17.5
+    start_date: 2010-01-01
+
+  - ticker: DEBO10
+    datastream_ticker: "BMBD10Y"
+    asset_class: rates
+    sleeve: sovereign_core
+    region: Germany
+    currency: EUR
+    role: 10y German Bunds
+    benchmark_weight_pct: 8.75    # 35% bonds * 25% Germany
+    saa_weight_pct: 8.75
+    start_date: 2010-01-01
+
+  - ticker: UKBO10
+    datastream_ticker: "BMUK10Y"
+    asset_class: rates
+    sleeve: sovereign_core
+    region: UK
+    currency: GBP
+    role: 10y UK Gilts
+    benchmark_weight_pct: 8.75    # 35% bonds * 25% UK
+    saa_weight_pct: 8.75
+    start_date: 2010-01-01
+
+  # --- Commodities ---
+  - ticker: GLGOLD
+    datastream_ticker: "GSGCTOT"
+    asset_class: commodities
+    sleeve: gold
+    region: Global
+    currency: USD
+    role: Strategic gold exposure
+    benchmark_weight_pct: 10.0
+    saa_weight_pct: 10.0
+    start_date: 2010-01-01
+
+  # --- Cash sleeves (funding; weights set to 0 until modeled) ---
+  - ticker: CASH_USD
+    datastream_ticker: "TRUS3MT"
+    asset_class: cash
+    sleeve: cash
+    region: US
+    currency: USD
+    role: USD cash / 3M rate
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01
+
+  - ticker: CASH_CHF
+    datastream_ticker: "TRSW3MT"
+    asset_class: cash
+    sleeve: cash
+    region: Switzerland
+    currency: CHF
+    role: CHF cash / 3M rate
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01
+
+  - ticker: CASH_EUR
+    datastream_ticker: "EIBOR3M"
+    asset_class: cash
+    sleeve: cash
+    region: Eurozone
+    currency: EUR
+    role: EUR cash / 3M rate
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01
+
+  - ticker: CASH_GBP
+    datastream_ticker: "TRUK3MT"
+    asset_class: cash
+    sleeve: cash
+    region: UK
+    currency: GBP
+    role: GBP cash / 3M rate
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01
+
+  # --- FX rates (for USD conversion or TAA currency trades) ---
+  - ticker: FX_USDCHF
+    datastream_ticker: "SWISFUS"
+    asset_class: fx
+    sleeve: fx_rates
+    pair: USD/CHF
+    quote_currency: CHF
+    base_currency: USD
+    role: USDCHF spot rate
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01
+
+  - ticker: FX_USDEUR
+    datastream_ticker: "TDEURSP"
+    asset_class: fx
+    sleeve: fx_rates
+    pair: USD/EUR
+    quote_currency: EUR
+    base_currency: USD
+    role: USDEUR spot rate
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01
+
+  - ticker: FX_USDGBP
+    datastream_ticker: "TDGBPSP"
+    asset_class: fx
+    sleeve: fx_rates
+    pair: USD/GBP
+    quote_currency: GBP
+    base_currency: USD
+    role: USDGBP spot rate (dollar per foreign)
+    benchmark_weight_pct: 0.0
+    saa_weight_pct: 0.0
+    start_date: 2010-01-01

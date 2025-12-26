@@ -16,7 +16,9 @@
     "ghcr.io/devcontainers/features/git-lfs:1": {}
   },
   "containerEnv": {
-  "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}"
-},
+    "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
+    "DSWS_USERNAME": "${{ secrets.DSWS_USERNAME }}",
+    "DSWS_PASSWORD": "${{ secrets.DSWS_PASSWORD }}"
+  },
   "postCreateCommand": "apt-get update && apt-get install -y pandoc libssl-dev libcurl4-openssl-dev libpng-dev zlib1g-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libudunits2-dev librsvg2-dev cmake && Rscript .devcontainer/install-packages.r"
 }
