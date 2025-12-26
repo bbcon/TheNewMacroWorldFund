@@ -1,0 +1,7 @@
+effective_date,strategy,ticker,weight,comment
+2024-01-01,macro_core,USEQMA,0.30,"US equity core"
+2024-01-01,macro_core,USBO10,0.30,"US Treasuries"
+2024-01-01,macro_core,CNEQMA,0.10,"China equity"
+2024-01-01,macro_core,UKBO10,0.10,"Gilts bonds"
+2024-01-01,macro_core,GLGOLD,0.10,"Gold diversifier"
+2024-01-01,macro_core,USEQCD,0.10,"US equity consumer"

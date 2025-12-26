@@ -97,10 +97,11 @@ fx_entries <- purrr::keep(universe, ~ .x$asset_class == "fx")
 
 message("Fetching FX series for USD conversions...")
 fx_series <- purrr::map(fx_entries, function(entry) {
+  field <- entry$price_field %||% price_field
   fx_df <- fetch_series(
     dsws = ds,
     ticker = entry$datastream_ticker,
-    field = price_field,
+    field = field,
     start_date = start_override %||% entry$start_date %||% "2000-01-01",
     end_date = end_override,
     freq = frequency
@@ -118,6 +119,7 @@ fx_lookup <- purrr::map(fx_series, ~ .x) %>% setNames(map_chr(fx_series, "quote_
 fetch_and_save <- function(entry) {
   ticker <- entry$ticker
   ds_ticker <- entry$datastream_ticker %||% ticker
+  field <- entry$price_field %||% price_field
   start_date <- start_override %||% entry$start_date %||% "2000-01-01"
   end_date <- end_override
   currency <- entry$currency %||% entry$quote_currency %||% "USD"
@@ -126,7 +128,7 @@ fetch_and_save <- function(entry) {
   ts_df <- fetch_series(
     dsws = ds,
     ticker = ds_ticker,
-    field = price_field,
+    field = field,
     start_date = start_date,
     end_date = end_date,
     freq = frequency
@@ -134,32 +136,64 @@ fetch_and_save <- function(entry) {
     dplyr::rename(price_local = value) %>%
     dplyr::mutate(currency = currency)
 
-  if (entry$asset_class == "fx") {
+  if (entry$asset_class == "cash") {
     ts_df <- ts_df %>%
       dplyr::mutate(
-        price_usd = price_local,
-        return_usd = price_usd / dplyr::lag(price_usd) - 1
+        price_local = price_local / 100,
+        daily_return_local = price_local / 252
       )
-  } else if (currency == "USD") {
-    ts_df <- ts_df %>%
-      dplyr::mutate(
-        price_usd = price_local,
-        return_usd = price_usd / dplyr::lag(price_usd) - 1
-      )
+
+    if (currency == "USD") {
+      ts_df <- ts_df %>%
+        dplyr::mutate(
+          return_usd = daily_return_local,
+          price_usd = cumprod(1 + return_usd)
+        )
+    } else {
+      fx_for_ccy <- fx_lookup[[currency]]
+      if (is.null(fx_for_ccy)) {
+        stop(sprintf("Missing FX pair for currency %s; add it to the universe as USD/%s", currency, currency))
+      }
+      if (!identical(fx_for_ccy$base_currency, "USD")) {
+        stop(sprintf("FX pair for %s must have base_currency USD to compute USD prices.", currency))
+      }
+      ts_df <- ts_df %>%
+        dplyr::left_join(fx_for_ccy$data, by = "date") %>%
+        dplyr::mutate(
+          fx_return = fx_rate / dplyr::lag(fx_rate) - 1,
+          return_usd = (1 + daily_return_local) * (1 + tidyr::replace_na(fx_return, 0)) - 1,
+          price_usd = cumprod(1 + return_usd)
+        ) %>%
+        dplyr::select(-fx_return)
+    }
   } else {
-    fx_for_ccy <- fx_lookup[[currency]]
-    if (is.null(fx_for_ccy)) {
-      stop(sprintf("Missing FX pair for currency %s; add it to the universe as USD/%s", currency, currency))
+    if (entry$asset_class == "fx") {
+      ts_df <- ts_df %>%
+        dplyr::mutate(
+          price_usd = price_local,
+          return_usd = price_usd / dplyr::lag(price_usd) - 1
+        )
+    } else if (currency == "USD") {
+      ts_df <- ts_df %>%
+        dplyr::mutate(
+          price_usd = price_local,
+          return_usd = price_usd / dplyr::lag(price_usd) - 1
+        )
+    } else {
+      fx_for_ccy <- fx_lookup[[currency]]
+      if (is.null(fx_for_ccy)) {
+        stop(sprintf("Missing FX pair for currency %s; add it to the universe as USD/%s", currency, currency))
+      }
+      if (!identical(fx_for_ccy$base_currency, "USD")) {
+        stop(sprintf("FX pair for %s must have base_currency USD to compute USD prices.", currency))
+      }
+      ts_df <- ts_df %>%
+        dplyr::left_join(fx_for_ccy$data, by = "date") %>%
+        dplyr::mutate(
+          price_usd = price_local * fx_rate,
+          return_usd = price_usd / dplyr::lag(price_usd) - 1
+        )
     }
-    if (!identical(fx_for_ccy$base_currency, "USD")) {
-      stop(sprintf("FX pair for %s must have base_currency USD to compute USD prices.", currency))
-    }
-    ts_df <- ts_df %>%
-      dplyr::left_join(fx_for_ccy$data, by = "date") %>%
-      dplyr::mutate(
-        price_usd = price_local * fx_rate,
-        return_usd = price_usd / dplyr::lag(price_usd) - 1
-      )
   }
 
   output_file <- file.path(opts$output_dir, paste0(ticker, ".parquet"))

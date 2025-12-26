@@ -1,7 +1,22 @@
 effective_date,strategy,ticker,weight,comment
-2024-01-01,macro_core,USEQMA,0.30,"US equity core"
-2024-01-01,macro_core,USBO10,0.30,"US Treasuries"
-2024-01-01,macro_core,CNEQMA,0.10,"China equity"
-2024-01-01,macro_core,UKBO10,0.10,"Gilts bonds"
-2024-01-01,macro_core,GLGOLD,0.10,"Gold diversifier"
-2024-01-01,macro_core,USEQCD,0.10,"US equity consumer"
+2023-01-01,macro_core,USEQ_US,0.198,US market-cap weighted equity (S&P 500 proxy)
+2023-01-01,macro_core,CNEQ_CN,0.132,China broad equity exposure
+2023-01-01,macro_core,EUEQ_DE,0.0363,German equity exposure
+2023-01-01,macro_core,EUEQ_FR,0.0363,French equity exposure
+2023-01-01,macro_core,EUEQ_ES,0.0187,Spanish equity exposure
+2023-01-01,macro_core,EUEQ_IT,0.0187,Italian equity exposure
+2023-01-01,macro_core,THEME_GRID,0.044000000000000004,Electric grid infrastructure equities (First Trust Nasdaq Smart Grid)
+2023-01-01,macro_core,THEME_SOLAR,0.022000000000000002,Solar ETF (Invesco)
+2023-01-01,macro_core,THEME_COPPER_CL,0.022000000000000002,Chile/copper equities as copper proxy
+2023-01-01,macro_core,THEME_DEFENCE,0.022000000000000002,Defence/aerospace equities
+2023-01-01,macro_core,USBO10,0.175,US Treasuries 10y
+2023-01-01,macro_core,DEBO10,0.0875,10y German Bunds
+2023-01-01,macro_core,UKBO10,0.0875,10y UK Gilts
+2023-01-01,macro_core,GLGOLD,0.1,Strategic gold exposure
+2023-01-01,macro_core,CASH_USD,0,USD cash / 3M rate
+2023-01-01,macro_core,CASH_CHF,0,CHF cash / 3M rate
+2023-01-01,macro_core,CASH_EUR,0,EUR cash / 3M rate
+2023-01-01,macro_core,CASH_GBP,0,GBP cash / 3M rate
+2023-01-01,macro_core,FX_USDCHF,0,USDCHF spot rate
+2023-01-01,macro_core,FX_USDEUR,0,USDEUR spot rate
+2023-01-01,macro_core,FX_USDGBP,0,USDGBP spot rate (dollar per foreign)

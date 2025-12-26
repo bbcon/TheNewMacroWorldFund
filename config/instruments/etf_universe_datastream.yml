@@ -18,7 +18,7 @@ universe:
     role: US market-cap weighted equity (S&P 500 proxy)
     benchmark_weight_pct: 27.5    # 55% equities * 50% US
     saa_weight_pct: 19.8          # 44% regional equities * 45% US
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: CNEQ_CN
     datastream_ticker: "MSCHIN$"
@@ -29,7 +29,7 @@ universe:
     role: China broad equity exposure
     benchmark_weight_pct: 11.0    # 55% equities * 20% China
     saa_weight_pct: 13.2          # 44% regional equities * 30% China
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: EUEQ_DE
     datastream_ticker: "DAXINDX"
@@ -40,7 +40,7 @@ universe:
     role: German equity exposure
     benchmark_weight_pct: 5.445   # 55% * 30% Europe * 33%
     saa_weight_pct: 3.63          # 44% * 25% Europe * 33%
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: EUEQ_FR
     datastream_ticker: "FRCAC40"
@@ -51,7 +51,7 @@ universe:
     role: French equity exposure
     benchmark_weight_pct: 5.445
     saa_weight_pct: 3.63
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: EUEQ_ES
     datastream_ticker: "IBEX35I"
@@ -62,7 +62,7 @@ universe:
     role: Spanish equity exposure
     benchmark_weight_pct: 2.805
     saa_weight_pct: 1.87
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: EUEQ_IT
     datastream_ticker: "FTSEMIB"
@@ -73,7 +73,7 @@ universe:
     role: Italian equity exposure
     benchmark_weight_pct: 2.805
     saa_weight_pct: 1.87
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   # --- Thematic equities (SAA overlay only; 20% of equity sleeve = 11% total) ---
   - ticker: THEME_GRID
@@ -86,7 +86,7 @@ universe:
     role: Electric grid infrastructure equities (First Trust Nasdaq Smart Grid)
     benchmark_weight_pct: 0.0
     saa_weight_pct: 4.4           # 11% total thematic * 40%
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: THEME_SOLAR
     datastream_ticker: "U:TAN"
@@ -98,7 +98,7 @@ universe:
     role: Solar ETF (Invesco)
     benchmark_weight_pct: 0.0
     saa_weight_pct: 2.2           # 11% total thematic * 20%
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: THEME_COPPER_CL
     datastream_ticker: "MSCHIL$"
@@ -110,7 +110,7 @@ universe:
     role: Chile/copper equities as copper proxy
     benchmark_weight_pct: 0.0
     saa_weight_pct: 2.2
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: THEME_DEFENCE
     datastream_ticker: "F3WDAD$"
@@ -122,7 +122,7 @@ universe:
     role: Defence/aerospace equities
     benchmark_weight_pct: 0.0
     saa_weight_pct: 2.2
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   # --- Sovereign bonds ---
   - ticker: USBO10
@@ -134,7 +134,7 @@ universe:
     role: US Treasuries 10y
     benchmark_weight_pct: 17.5    # 35% bonds * 50% US
     saa_weight_pct: 17.5
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: DEBO10
     datastream_ticker: "BMBD10Y"
@@ -145,7 +145,7 @@ universe:
     role: 10y German Bunds
     benchmark_weight_pct: 8.75    # 35% bonds * 25% Germany
     saa_weight_pct: 8.75
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: UKBO10
     datastream_ticker: "BMUK10Y"
@@ -156,11 +156,12 @@ universe:
     role: 10y UK Gilts
     benchmark_weight_pct: 8.75    # 35% bonds * 25% UK
     saa_weight_pct: 8.75
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   # --- Commodities ---
   - ticker: GLGOLD
     datastream_ticker: "GSGCTOT"
+    price_field: TR
     asset_class: commodities
     sleeve: gold
     region: Global
@@ -168,11 +169,12 @@ universe:
     role: Strategic gold exposure
     benchmark_weight_pct: 10.0
     saa_weight_pct: 10.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   # --- Cash sleeves (funding; weights set to 0 until modeled) ---
   - ticker: CASH_USD
     datastream_ticker: "TRUS3MT"
+    price_field: RY
     asset_class: cash
     sleeve: cash
     region: US
@@ -180,10 +182,11 @@ universe:
     role: USD cash / 3M rate
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: CASH_CHF
     datastream_ticker: "TRSW3MT"
+    price_field: RY
     asset_class: cash
     sleeve: cash
     region: Switzerland
@@ -191,10 +194,11 @@ universe:
     role: CHF cash / 3M rate
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: CASH_EUR
     datastream_ticker: "EIBOR3M"
+    price_field: IO
     asset_class: cash
     sleeve: cash
     region: Eurozone
@@ -202,10 +206,11 @@ universe:
     role: EUR cash / 3M rate
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: CASH_GBP
     datastream_ticker: "TRUK3MT"
+    price_field: RY
     asset_class: cash
     sleeve: cash
     region: UK
@@ -213,11 +218,12 @@ universe:
     role: GBP cash / 3M rate
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   # --- FX rates (for USD conversion or TAA currency trades) ---
   - ticker: FX_USDCHF
     datastream_ticker: "SWISFUS"
+    price_field: EB
     asset_class: fx
     sleeve: fx_rates
     pair: USD/CHF
@@ -226,10 +232,11 @@ universe:
     role: USDCHF spot rate
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: FX_USDEUR
     datastream_ticker: "TDEURSP"
+    price_field: EB
     asset_class: fx
     sleeve: fx_rates
     pair: USD/EUR
@@ -238,10 +245,11 @@ universe:
     role: USDEUR spot rate
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01
 
   - ticker: FX_USDGBP
     datastream_ticker: "TDGBPSP"
+    price_field: EB
     asset_class: fx
     sleeve: fx_rates
     pair: USD/GBP
@@ -250,4 +258,4 @@ universe:
     role: USDGBP spot rate (dollar per foreign)
     benchmark_weight_pct: 0.0
     saa_weight_pct: 0.0
-    start_date: 2010-01-01
+    start_date: 2023-01-01

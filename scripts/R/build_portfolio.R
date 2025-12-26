@@ -18,8 +18,11 @@ option_list <- list(
                         default = "data/reference/saa_weights_history.csv",
                         help = "CSV with SAA baseline weights (must sum to one)."),
   optparse::make_option(c("-p", "--price-dir"), dest = "price_dir",
-                        type = "character", default = "data/raw/yahoo",
-                        help = "Directory with ETF parquet files."),
+                        type = "character", default = "data/raw/datastream",
+                        help = "Directory with price parquet files."),
+  optparse::make_option(c("--price-format"), dest = "price_format",
+                        type = "character", default = "datastream",
+                        help = "Price format: datastream (price_usd/return_usd) or yahoo (adjusted)."),
   optparse::make_option(c("-o", "--output"), type = "character",
                         default = "data/outputs/performance/taa_portfolio_returns.parquet",
                         help = "Parquet path for aggregated portfolio returns."),
@@ -38,6 +41,11 @@ stopifnot(file.exists(opts$saa_weights))
 stopifnot(dir.exists(opts$price_dir))
 if (!dir.exists(dirname(opts$output))) dir.create(dirname(opts$output), recursive = TRUE)
 if (!dir.exists(dirname(opts$weights_log))) dir.create(dirname(opts$weights_log), recursive = TRUE)
+
+price_format <- tolower(opts$price_format)
+if (!price_format %in% c("datastream", "yahoo")) {
+  stop("price-format must be either 'datastream' or 'yahoo'")
+}
 
 saa_weights <- readr::read_csv(opts$saa_weights, show_col_types = FALSE) %>%
   dplyr::mutate(effective_date = lubridate::as_date(effective_date))
@@ -63,20 +71,37 @@ if (any(abs(taa_sums$total_weight) > 1e-4)) {
 
 price_files <- list.files(opts$price_dir, pattern = "\\.parquet$", full.names = TRUE)
 if (length(price_files) == 0) {
-  stop("No price files found; run scripts/R/fetch_yahoo_data.R first.")
+  stop("No price files found in ", opts$price_dir, "; fetch data before building the portfolio.")
 }
 
 prices <- purrr::map_dfr(price_files, function(path) {
   ticker <- tools::file_path_sans_ext(basename(path))
   df <- arrow::read_parquet(path)
-  dplyr::mutate(df, ticker = ticker)
-}) %>%
-  dplyr::mutate(date = lubridate::as_date(date)) %>%
-  dplyr::select(ticker, date, adjusted) %>%
-  dplyr::arrange(ticker, date) %>%
-  dplyr::group_by(ticker) %>%
-  dplyr::mutate(return = adjusted / dplyr::lag(adjusted) - 1) %>%
-  dplyr::ungroup()
+  df <- dplyr::mutate(df, ticker = ticker, date = lubridate::as_date(date))
+  if (price_format == "datastream") {
+    if (!("price_usd" %in% names(df))) {
+      stop("Datastream price file missing price_usd: ", path)
+    }
+    df <- dplyr::arrange(df, date)
+    if ("return_usd" %in% names(df)) {
+      df <- dplyr::mutate(df, return = return_usd)
+    } else {
+      df <- dplyr::mutate(df, return = price_usd / dplyr::lag(price_usd) - 1)
+    }
+    dplyr::select(df, ticker, date, adjusted = price_usd, return)
+  } else {
+    if (!("adjusted" %in% names(df))) {
+      stop("Yahoo price file missing adjusted column: ", path)
+    }
+    dplyr::arrange(df, date) %>%
+      dplyr::group_by(ticker) %>%
+      dplyr::mutate(return = adjusted / dplyr::lag(adjusted) - 1) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(ticker, date, adjusted, return)
+  }
+})
+
+
 
 start_date <- min(saa_weights$effective_date, na.rm = TRUE)
 prices <- dplyr::filter(prices, date >= start_date)
@@ -177,4 +202,3 @@ readr::write_csv(latest_weights, opts$weights_log)
 
 message("Portfolio returns written to ", opts$output)
 message("Latest weights snapshot written to ", opts$weights_log)
-
