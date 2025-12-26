@@ -1,7 +1,7 @@
 effective_date,strategy,trade_id,ticker,weight,exit_date,comment
 2025-05-01,core_taa,TAA-2025-LiberationDay_LongUS,USEQ_US,+0.1,2025-11-15,"OW US equity vs CASH"
 2025-05-01,core_taa,TAA-2025-LiberationDay_LongUS,CASH_USD,-0.1,2025-11-15,"OW US equity vs CASH"
-2024-04-25,core_taa,TAA-2025-LongGilts,UKBO10,0.2,,"Long Gilts vs CASH"
-2024-04-25,core_taa,TAA-2025-LongGilts,CASH_GBP,-0.2,,"Long Gilts vs CASH"
+2024-09-01,core_taa,TAA-2025-LongGilts,UKBO10,0.3,,"Long Gilts vs CASH"
+2024-09-01,core_taa,TAA-2025-LongGilts,CASH_GBP,-0.3,,"Long Gilts vs CASH"
 2024-09-15,core_taa,TAA-2025-LongBunds,DEBO10,0.2,2025-11-15,"Long Bunds vs CASH"
 2024-09-15,core_taa,TAA-2025-LongBunds,CASH_EUR,-0.2,2025-11-15,"Long Bunds vs CASH"
