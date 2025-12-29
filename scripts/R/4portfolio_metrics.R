@@ -56,6 +56,18 @@ option_list <- list(
   optparse::make_option(c("--rolling-output"), dest = "rolling_output",
                         default = "data/outputs/performance/rolling_metrics.parquet",
                         help = "Parquet path for rolling stats."),
+  optparse::make_option(c("--returns-by-ticker"), dest = "returns_by_ticker",
+                        default = "data/processed/returns/asset_returns.parquet",
+                        help = "Parquet with ticker-level USD returns (for trade analytics)."),
+  optparse::make_option(c("--taa-weights"), dest = "taa_weights",
+                        default = "data/reference/taa_weights_history.csv",
+                        help = "CSV with TAA weights (must include trade_id rows)."),
+  optparse::make_option(c("--trades-summary-output"), dest = "trades_output",
+                        default = "data/outputs/performance/trades_summary.parquet",
+                        help = "Parquet path for per-trade performance summary."),
+  optparse::make_option(c("--trades-equity-output"), dest = "trades_equity_output",
+                        default = "data/outputs/performance/trades_equity_curve.parquet",
+                        help = "Parquet path for per-trade equity curves."),
   optparse::make_option(c("--figure-dir"), dest = "figure_dir",
                         default = "reports/figures",
                         help = "Directory where ggplot charts will be saved.")
@@ -64,14 +76,23 @@ option_list <- list(
 opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
 
 if (!file.exists(opts$input)) stop("Input portfolio parquet not found: ", opts$input)
+if (!file.exists(opts$taa_weights)) stop("TAA weights CSV not found: ", opts$taa_weights)
 if (!dir.exists(dirname(opts$output))) dir.create(dirname(opts$output), recursive = TRUE)
 if (!dir.exists(dirname(opts$dd_output))) dir.create(dirname(opts$dd_output), recursive = TRUE)
 if (!dir.exists(dirname(opts$rolling_output))) dir.create(dirname(opts$rolling_output), recursive = TRUE)
 if (!dir.exists(opts$figure_dir)) dir.create(opts$figure_dir, recursive = TRUE)
+if (!dir.exists(dirname(opts$trades_output))) dir.create(dirname(opts$trades_output), recursive = TRUE)
+if (!dir.exists(dirname(opts$trades_equity_output))) dir.create(dirname(opts$trades_equity_output), recursive = TRUE)
 
 portfolio <- arrow::read_parquet(opts$input) %>%
   dplyr::mutate(date = lubridate::as_date(date)) %>%
   dplyr::arrange(strategy, date)
+
+taa_weights <- readr::read_csv(opts$taa_weights, show_col_types = FALSE) %>%
+  dplyr::mutate(
+    effective_date = lubridate::as_date(effective_date),
+    exit_date = lubridate::as_date(exit_date)
+  )
 
 today_year <- lubridate::year(max(portfolio$date, na.rm = TRUE))
 
@@ -144,3 +165,78 @@ message("Drawdowns written to ", opts$dd_output)
 message("Rolling stats written to ", opts$rolling_output)
 message("Charts written to ", opts$figure_dir)
 
+# ----- Trade analytics (per trade_id from TAA weights) -----
+if (file.exists(opts$returns_by_ticker)) {
+  returns_by_ticker <- arrow::read_parquet(opts$returns_by_ticker) %>%
+    dplyr::mutate(date = lubridate::as_date(date)) %>%
+    dplyr::select(ticker, date, return_usd)
+
+  calendar_dates <- tibble::tibble(date = sort(unique(returns_by_ticker$date)))
+
+  trade_weights <- taa_weights %>%
+    dplyr::filter(!is.na(trade_id) & trade_id != "") %>%
+    dplyr::mutate(
+      effective_date = dplyr::coalesce(effective_date, min(calendar_dates$date, na.rm = TRUE)),
+      exit_date = dplyr::coalesce(exit_date, max(calendar_dates$date, na.rm = TRUE))
+    )
+
+  if (nrow(trade_weights)) {
+    expand_trade_weights <- function(df) {
+      df %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(data = list(tibble::tibble(
+          date = calendar_dates$date[calendar_dates$date >= effective_date & calendar_dates$date <= exit_date],
+          weight_expanded = weight
+        ))) %>%
+        tidyr::unnest(data) %>%
+        dplyr::ungroup() %>%
+        dplyr::transmute(trade_id, ticker, date, weight = weight_expanded)
+    }
+
+    trade_daily <- trade_weights %>% expand_trade_weights()
+
+    trade_returns <- trade_daily %>%
+      dplyr::inner_join(returns_by_ticker, by = c("ticker", "date")) %>%
+      dplyr::group_by(trade_id, date) %>%
+      dplyr::summarise(
+        trade_return = sum(weight * return_usd, na.rm = TRUE),
+        gross_exposure = sum(abs(weight), na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      dplyr::group_by(trade_id) %>%
+      dplyr::arrange(date, .by_group = TRUE) %>%
+      dplyr::mutate(nav = cumprod(1 + tidyr::replace_na(trade_return, 0))) %>%
+      dplyr::ungroup()
+
+    trade_summary <- trade_returns %>%
+      dplyr::group_by(trade_id) %>%
+      dplyr::summarise(
+        entry_date = min(date, na.rm = TRUE),
+        exit_date = max(date, na.rm = TRUE),
+        total_return = prod(1 + tidyr::replace_na(trade_return, 0)) - 1,
+        cagr = {
+          days_held <- as.numeric(exit_date - entry_date + 1)
+          (1 + total_return)^(365.25 / days_held) - 1
+        },
+        vol = stats::sd(trade_return, na.rm = TRUE) * sqrt(252),
+        sharpe = ifelse(vol == 0, NA_real_, (mean(trade_return, na.rm = TRUE) * 252) / vol),
+        max_drawdown = {
+          nav_vec <- cumprod(1 + tidyr::replace_na(trade_return, 0))
+          peak <- cummax(nav_vec)
+          min(nav_vec / peak - 1, na.rm = TRUE)
+        },
+        gross_exposure_avg = mean(gross_exposure, na.rm = TRUE),
+        .groups = "drop"
+      )
+
+    arrow::write_parquet(trade_returns, opts$trades_equity_output)
+    arrow::write_parquet(trade_summary, opts$trades_output)
+
+    message("Trade equity curves written to ", opts$trades_equity_output)
+    message("Trade summaries written to ", opts$trades_output)
+  } else {
+    message("No trade_id rows found in TAA weights; skipping trade analytics.")
+  }
+} else {
+  message("Ticker-level returns parquet not found: ", opts$returns_by_ticker, "; skipping trade analytics.")
+}
