@@ -21,45 +21,17 @@ The benchmark is a simple 60/40 portfolio with a similar regional distribution t
 
 # Workflow
 
-## Data ingestion
+The workflow is deliberately linear and driven by seven numbered R scripts (all live in `scripts/R/`):
 
-The script 'scripts/R/fetch_yahoo_data.R' loads ETFs data from Yahoo Finance. The tickers and their description are defined in a config file located in 'config/instruments/etf_universe.yml'. The fact that ETFs are retrieved from Yahoo provides full transparency and reproducibility. However, this comes at two serious costs: i) data may not be reliable and may be retroactively adjusted, and ii) certain (a lot!) ETFs may not be available. The live portfolio will use data from Datastream (still to do).
+1. `1fetch_raw_data.R` pulls Datastream series listed in `config/instruments/etf_universe_datastream.yml` into `data/raw/datastream/`.
+2. `2raw_data_to_returns.R` converts raw series into daily local returns, cash-rate daily returns, FX-adjusted USD returns (with CIP-based hedging for rates), and exports sanity-check summaries.
+3. `3build_portfolios.R` reads SAA/benchmark weights from the config, TAA calls from `data/reference/taa_weights_history.csv`, and writes combined portfolio returns plus a latest-weight snapshot.
+4. `4portfolio_metrics.R` produces NAV, drawdowns, rolling stats, and summary metrics for SAA, TAA, the fund (SAA+TAA), and the benchmark.
+5. `5load_trade_narratives.R` filters `logs/tactical_trades/*.md` to the trade_ids present in `taa_weights_history.csv` and outputs JSON for the site.
+6. `6export_site_data.R` converts the key parquet outputs to JSON in `docs/data/` for publishing.
+7. `7render_site.R` renders `docs/index.Rmd` so the latest figures and narratives are visible on the static site.
 
-The following CLI script can be run in the terminal:
-
-Add rscript CLI command here.
-
-
-## Portfolio construction and metrics
-
-The script 'scripts/R/build_portfolio.R' (name needs to be adjusted) loads SAA and TAA weights from `data/weights/SAA_weights.csv' and 'data/weights/TAA_weights.csv', respectively. These two files contain the history of SAA and TAA weights. New trades, either changes in structural allocation or tactical trades are logged by adjusting these .csv files, making sure the date of the change is correctly set.
-
-The script ensures that weights sum up to the required amount (1 for SAA, and 0 for TAA).
-
-Portfolio returns are then constructed. Portfolio performance can truly be decomposed as the sum of SAA and TAA. The natural benchmark for the SAA is the benchmark portfolio, while the benchmark for TAA is absolute.
-
-Finally, some summary statistics of the YTD and overall portfolio performance are displayed. 
-
-Portfolio returns and portfolio metrics (both YTD and overall) are then output (as a list) in the folder 'outputs/portfolio/YYYYMMDD/portfolio_metrics.parquet'.
-
-## Logging and analysing trades
-
-TAA and SAA trades are logged by adjusting the TAA and SAA weights mentioned above. The rationale of the trade are written in 'logs/tactical_trades/xxx.md' and 'logs/strategic_trades/xxx.md', respectively. This is important because the folder logs/postmortems/ will have the postmortem analysis of the trades to see whether they worked or not.
-
-The script 'scripts/R/trade_performance.R' analyses the performance of one trade in isolation. It can be run via the command line.
-
-The script 'scripts/R/run_all_trade_perf.R' analyses all trades (both active and finalised). Performance is output per year and with the ability to check the performance of live versus closed trades.
-
-## Portfolio performance
-
- The overall portfolio metrics are run in a rmd (in 'reports/performance/portfolio_metrics.rmd' which reads the latest available data stored in outputs/portfolio/YYYYMMDD/portfolio_metrics.parquet). The rmd displays insightful analysis. 
- 
- In addition, a decomposition of the performance in SAA vs TAA is also done.
-
- These files form the basis for what will be published on the website.
-
-
-## 
+Legacy/experimental scripts now live under `old/` so the main tree stays lean on this branch.
 
 
 # OLD (KEEP FOR NOW)

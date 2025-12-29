@@ -1,20 +1,13 @@
 # Scripts
 
-Automation entry points live here:
+Current workflow is intentionally linear and lives under `scripts/R` with numbered entry points:
 
-- `R/` – existing R scripts for data pulls and portfolio construction.
-- `python/` – space for analytics/helpers not tied to R.
-- `pipelines/` – orchestration scripts (e.g., `run_weekly_models.sh`).
+1. `1fetch_raw_data.R` – pull Datastream series defined in `config/instruments/etf_universe_datastream.yml` into `data/raw/datastream/`.
+2. `2raw_data_to_returns.R` – convert raw series to daily local + USD returns (cash/rates hedging logic included) and write summaries.
+3. `3build_portfolios.R` – derive SAA and benchmark weights from the config, overlay TAA trades from `data/reference/taa_weights_history.csv`, and write portfolio returns + latest weights.
+4. `4portfolio_metrics.R` – compute NAV, drawdowns, rolling stats, and summary metrics for SAA, TAA, fund, and benchmark.
+5. `5load_trade_narratives.R` – filter trade narratives in `logs/tactical_trades/` to active TAA trade_ids and output JSON for the site.
+6. `6export_site_data.R` – convert parquet outputs to JSON in `docs/data/` for site consumption.
+7. `7render_site.R` – render `docs/index.Rmd` to `docs/index.html`.
 
-Keep scripts idempotent and rely on configs under `config/` rather than hard-coded values.
-
-### Key entry points
-- `R/fetch_yahoo_data.R` – refresh ETF prices in `data/raw/yahoo/`.
-- `R/build_portfolio.R` – merge SAA + TAA weights into portfolio returns and weight snapshots.
-- `R/trade_performance.R` – generate per-trade analytics (spread returns, drawdowns) and write them to `data/outputs/performance/trades/`.
-- `R/run_all_trade_perf.R` – read `data/reference/taa_weights_history.csv` (rows with `trade_id`), infer long/short legs, and call `trade_performance.R` for each trade.
-- `R/aggregate_trades.R` – combine trade summaries and daily files into portfolio-level equity/drawdown and save figures.
-- `R/compute_portfolio_metrics.R` – compute since-inception/YTD stats, rolling risk, and ggplot charts for the portfolio.
-- `R/attribution.R` – decompose daily returns into SAA vs TAA contributions and export attribution charts.
-- `R/export_site_data.R` – convert parquet outputs to JSON for the static site.
-- `run_all_trade_perf.sh` – parse TAA trade logs (`logs/tactical_trades/taa-*.md`) and run `trade_performance.R` for each.
+Previous scripts and helper folders are parked under `old/` for reference; only the numbered scripts above are meant to be used on this branch.

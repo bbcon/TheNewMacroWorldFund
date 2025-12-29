@@ -14,7 +14,6 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(plotly)
-library(DT)
 library(htmltools)
 library(markdown)
 library(scales)
@@ -40,9 +39,6 @@ portfolio <- safe_json(file.path(data_dir, "portfolio.json")) %>% mutate(date = 
 metrics <- safe_json(file.path(data_dir, "metrics.json"))
 drawdowns <- safe_json(file.path(data_dir, "drawdowns.json")) %>% mutate(date = as.Date(date))
 rolling <- safe_json(file.path(data_dir, "rolling.json")) %>% mutate(date = as.Date(date))
-attrib <- safe_json(file.path(data_dir, "attribution.json")) %>% mutate(date = as.Date(date))
-trades_summary <- safe_json(file.path(data_dir, "trades_summary.json")) %>% mutate(entry_date = as.Date(entry_date), exit_date = as.Date(exit_date))
-trades_equity <- safe_json(file.path(data_dir, "trades_equity.json")) %>% mutate(date = as.Date(date))
 trades_narratives <- safe_json(file.path(data_dir, "trades_narratives.json")) %>%
   mutate(entry_date = as.character(entry_date), exit_date = as.character(exit_date))
 about_md <- if (file.exists("about.md")) paste(readLines("about.md"), collapse = "\n") else NULL
@@ -162,7 +158,7 @@ contact_md <- if (file.exists("contact.md")) paste(readLines("contact.md"), coll
 <header style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:16px;">
   <div>
     <h1 style="margin:0;font-size:28px;letter-spacing:-0.3px;">Portfolio + TAA Dashboard</h1>
-  <div class="muted">NAV, risk, attribution, and trade-level detail (data from R exports under <code>docs/data</code>).</div>
+  <div class="muted">NAV, risk, and narratives for SAA, TAA, fund, and benchmark (JSON exports in <code>docs/data</code>).</div>
   </div>
   <span class="pill">Live Data</span>
 </header>
@@ -222,81 +218,64 @@ if (!nrow(drawdowns)) {
 }
 ```
 
-### Rolling Metrics (63d)
-```{r rolling-plot}
+### Rolling Return (63d)
+```{r rolling-return}
+if (!nrow(rolling)) {
+  div(class = "empty", "No rolling metrics found.") |> browsable()
+} else {
+  p <- ggplot(rolling, aes(x = date, y = roll_63_return, color = strategy)) +
+    geom_line() +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    labs(x = NULL, y = "63d Return", color = "Strategy") +
+    theme(legend.position = "bottom")
+  ggplotly(p, dynamicTicks = TRUE)
+}
+```
+
+### Rolling Sharpe (63d)
+```{r rolling-sharpe}
 if (!nrow(rolling)) {
   div(class = "empty", "No rolling metrics found.") |> browsable()
 } else {
   p <- ggplot(rolling, aes(x = date, y = roll_63_sharpe, color = strategy)) +
     geom_line() +
-    labs(x = NULL, y = "Roll Sharpe (63d)", color = "Strategy") +
+    labs(x = NULL, y = "63d Sharpe", color = "Strategy") +
     theme(legend.position = "bottom")
   ggplotly(p, dynamicTicks = TRUE)
 }
 ```
 
-### Attribution (SAA vs TAA)
-```{r attrib-plot}
-if (!nrow(attrib)) {
-  div(class = "empty", "No attribution data found.") |> browsable()
+### Trade Summary
+```{r trade-summary, results='asis'}
+if (!nrow(trades_narratives)) {
+  div(class = "empty", "No trade narratives found.") |> browsable()
 } else {
-  attrib_long <- attrib %>%
-    mutate(month = as.Date(paste0(substr(date, 1, 7), "-01"))) %>%
-    group_by(strategy, month) %>%
-    summarise(return_saa = sum(return_saa, na.rm = TRUE),
-              return_taa = sum(return_taa, na.rm = TRUE),
-              .groups = "drop") %>%
-    pivot_longer(c(return_saa, return_taa), names_to = "bucket", values_to = "value")
-  p <- ggplot(attrib_long, aes(x = month, y = value, fill = bucket)) +
-    geom_col(position = "stack") +
-    facet_wrap(~ strategy, scales = "free_y") +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-    scale_x_date(labels = scales::date_format("%Y-%m"), date_breaks = "3 months") +
-    labs(x = NULL, y = "Return contribution", fill = NULL) +
-    theme(legend.position = "bottom")
-  ggplotly(p, dynamicTicks = TRUE)
-}
-```
-
-### Trade Equity Curve
-```{r trade-equity-plot}
-if (!nrow(trades_equity)) {
-  div(class = "empty", "No trade equity data found.") |> browsable()
-} else {
-  p <- ggplot(trades_equity, aes(x = date, y = nav)) +
-    geom_line(color = "#0ea5e9") +
-    labs(x = NULL, y = "Trade NAV") +
-    theme(legend.position = "none")
-  ggplotly(p, dynamicTicks = TRUE)
-}
-```
-
-### Trades Table
-```{r trades-table}
-if (!nrow(trades_summary)) {
-  div(class = "empty", "No trades found.") |> browsable()
-} else {
-  ret_col <- if ("spread_total_return" %in% names(trades_summary)) {
-    trades_summary$spread_total_return
-  } else if ("total_return" %in% names(trades_summary)) {
-    trades_summary$total_return
-  } else {
-    rep(NA_real_, nrow(trades_summary))
-  }
-  dd_col <- if ("max_drawdown" %in% names(trades_summary)) trades_summary$max_drawdown else rep(NA_real_, nrow(trades_summary))
-  sharpe_col <- if ("sharpe" %in% names(trades_summary)) trades_summary$sharpe else rep(NA_real_, nrow(trades_summary))
-  trades_tbl <- trades_summary %>%
-    arrange(desc(exit_date)) %>%
+  tbl <- trades_narratives %>%
     mutate(
-      entry_date = as.character(entry_date),
-      exit_date = ifelse(is.na(exit_date), "Open", as.character(exit_date)),
-      total_return = fmt_pct(ret_col, 2),
-      max_drawdown = fmt_pct(dd_col, 1),
-      sharpe = fmt_num(sharpe_col, 2)
+      Trade = trade_id %||% title %||% "Trade",
+      Title = title %||% "Trade rationale",
+      Entry = entry_date %||% "\u2014",
+      Exit = ifelse(is.na(exit_date) | exit_date == "", "Open", exit_date),
+      ExitDecision = exit_decision %||% "\u2014"
     ) %>%
-    select(Trade = trade_id, Entry = entry_date, Exit = exit_date,
-           Return = total_return, DD = max_drawdown, Sharpe = sharpe)
-  datatable(trades_tbl, rownames = FALSE, options = list(pageLength = 10, dom = "tip"), class = "stripe hover compact")
+    select(Trade, Title, Entry, Exit, ExitDecision)
+
+  table_rows <- lapply(seq_len(nrow(tbl)), function(i) {
+    row <- tbl[i, ]
+    tags$tr(lapply(row, function(cell) tags$td(htmlEscape(as.character(cell)))))
+  })
+
+  tags$div(
+    class = "card",
+    tags$h3(style = "margin:0 0 8px 0;", "Trade Summary"),
+    tags$table(
+      style = "width:100%;border-collapse:collapse;",
+      tags$thead(
+        tags$tr(lapply(names(tbl), function(h) tags$th(style = "text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;", h)))
+      ),
+      tags$tbody(table_rows)
+    )
+  ) |> browsable()
 }
 ```
 
