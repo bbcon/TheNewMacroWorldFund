@@ -155,6 +155,20 @@ contact_md <- if (file.exists("contact.md")) paste(readLines("contact.md"), coll
     border: 2px solid #e2e8f0;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
   }
+  .banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #fef9c3;
+    border: 1px solid #f59e0b;
+    color: #78350f;
+    border-radius: 10px;
+    margin: 0 0 16px 0;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(120, 53, 15, 0.08);
+  }
+  .banner small { font-weight: 500; color: #92400e; }
 </style>
 
 <header style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:16px;">
@@ -164,6 +178,11 @@ contact_md <- if (file.exists("contact.md")) paste(readLines("contact.md"), coll
   </div>
   <span class="pill">Live Data</span>
 </header>
+
+<div class="banner">
+  <span>Under construction</span>
+  <small>This site is actively being built and content will change.</small>
+</div>
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
