@@ -39,6 +39,8 @@ portfolio <- safe_json(file.path(data_dir, "portfolio.json")) %>% mutate(date = 
 metrics <- safe_json(file.path(data_dir, "metrics.json"))
 drawdowns <- safe_json(file.path(data_dir, "drawdowns.json")) %>% mutate(date = as.Date(date))
 rolling <- safe_json(file.path(data_dir, "rolling.json")) %>% mutate(date = as.Date(date))
+trades_summary <- safe_json(file.path(data_dir, "trades_summary.json")) %>%
+  mutate(entry_date = as.Date(entry_date), exit_date = as.Date(exit_date))
 trades_narratives <- safe_json(file.path(data_dir, "trades_narratives.json")) %>%
   mutate(entry_date = as.character(entry_date), exit_date = as.character(exit_date))
 about_md <- if (file.exists("about.md")) paste(readLines("about.md"), collapse = "\n") else NULL
@@ -247,29 +249,36 @@ if (!nrow(rolling)) {
 
 ### Trade Summary
 ```{r trade-summary, results='asis'}
-if (!nrow(trades_narratives)) {
-  div(class = "empty", "No trade narratives found.") |> browsable()
+if (!nrow(trades_summary)) {
+  div(class = "empty", "No trade performance found.") |> browsable()
 } else {
-  tbl <- trades_narratives %>%
+  ret_col <- dplyr::coalesce(trades_summary$spread_total_return, trades_summary$total_return)
+  dd_col <- trades_summary$max_drawdown
+  sharpe_col <- trades_summary$sharpe
+  cagr_col <- trades_summary$cagr
+
+  tbl <- trades_summary %>%
     mutate(
-      Trade = trade_id %||% title %||% "Trade",
-      Title = title %||% "Trade rationale",
-      Entry = entry_date %||% "\u2014",
-      Exit = ifelse(is.na(exit_date) | exit_date == "", "Open", exit_date),
-      ExitDecision = exit_decision %||% "\u2014"
+      Trade = trade_id %||% "Trade",
+      Entry = as.character(entry_date %||% "\u2014"),
+      Exit = ifelse(is.na(exit_date), "Open", as.character(exit_date)),
+      Return = fmt_pct(ret_col, 2),
+      MaxDD = fmt_pct(dd_col, 1),
+      Sharpe = fmt_num(sharpe_col, 2),
+      CAGR = fmt_pct(cagr_col, 2)
     ) %>%
-    select(Trade, Title, Entry, Exit, ExitDecision)
+    select(Trade, Entry, Exit, Return, MaxDD, Sharpe, CAGR)
 
   table_rows <- lapply(seq_len(nrow(tbl)), function(i) {
     row <- tbl[i, ]
-    tags$tr(lapply(row, function(cell) tags$td(htmlEscape(as.character(cell)))))
+    tags$tr(lapply(row, function(cell) tags$td(style = "padding:6px 8px;border-bottom:1px solid #e2e8f0;", htmlEscape(as.character(cell)))))
   })
 
   tags$div(
     class = "card",
-    tags$h3(style = "margin:0 0 8px 0;", "Trade Summary"),
+    tags$h3(style = "margin:0 0 8px 0;", "Trade Summary (TAA)"),
     tags$table(
-      style = "width:100%;border-collapse:collapse;",
+      style = "width:100%;border-collapse:collapse;font-size:14px;",
       tags$thead(
         tags$tr(lapply(names(tbl), function(h) tags$th(style = "text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;", h)))
       ),

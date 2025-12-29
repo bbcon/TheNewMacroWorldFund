@@ -23,6 +23,12 @@ option_list <- list(
   optparse::make_option(c("--rolling"), dest = "rolling",
                         default = "data/outputs/performance/rolling_metrics.parquet",
                         help = "Parquet with rolling stats."),
+  optparse::make_option(c("--trades-summary"), dest = "trades_summary",
+                        default = "data/outputs/performance/trades_summary.parquet",
+                        help = "Parquet with per-trade performance summary."),
+  optparse::make_option(c("--trades-equity"), dest = "trades_equity",
+                        default = "data/outputs/performance/trades_equity_curve.parquet",
+                        help = "Parquet with aggregate trade equity curve."),
   optparse::make_option(c("--narratives"), dest = "narratives",
                         default = "docs/data/trades_narratives.json",
                         help = "Trade narratives JSON (copied through if present)."),
@@ -51,6 +57,8 @@ write_parquet_json(opts$portfolio, "portfolio.json")
 write_parquet_json(opts$metrics, "metrics.json")
 write_parquet_json(opts$drawdowns, "drawdowns.json")
 write_parquet_json(opts$rolling, "rolling.json")
+write_parquet_json(opts$trades_summary, "trades_summary.json")
+write_parquet_json(opts$trades_equity, "trades_equity.json")
 
 if (file.exists(opts$narratives)) {
   dest_path <- file.path(opts$output_dir, "trades_narratives.json")
