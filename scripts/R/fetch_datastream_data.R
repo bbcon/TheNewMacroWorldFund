@@ -118,13 +118,6 @@ fx_lookup <- purrr::map(fx_series, ~ .x) %>% setNames(map_chr(fx_series, "quote_
 cash_entries <- purrr::keep(universe, ~ .x$asset_class == "cash")
 non_fx_cash_entries <- purrr::discard(universe, ~ .x$asset_class %in% c("fx", "cash"))
 
-load_cached_cash <- function(ticker, output_dir) {
-  cached_path <- file.path(output_dir, paste0(ticker, ".parquet"))
-  if (!file.exists(cached_path)) return(NULL)
-  message(sprintf("Loading cached cash series for %s from %s", ticker, cached_path))
-  arrow::read_parquet(cached_path)
-}
-
 fetch_and_save <- function(entry, cash_lookup = NULL) {
   ticker <- entry$ticker
   ds_ticker <- entry$datastream_ticker %||% ticker
@@ -165,7 +158,7 @@ fetch_and_save <- function(entry, cash_lookup = NULL) {
       ts_df <- ts_df %>%
         dplyr::left_join(usd_cash, by = "date") %>%
         dplyr::mutate(
-          return_usd = tidyr::replace_na(usd_cash_return, daily_return_local),
+          return_usd = dplyr::coalesce(usd_cash_return, daily_return_local),
           price_usd = cumprod(1 + return_usd)
         ) %>%
         dplyr::select(-usd_cash_return)
@@ -239,33 +232,17 @@ cash_lookup <- list()
 if (length(cash_entries) > 0) {
   usd_cash_entry <- purrr::detect(cash_entries, ~ (.x$currency %||% .x$quote_currency %||% "") == "USD")
   if (!is.null(usd_cash_entry)) {
-    usd_cash_df <- tryCatch(
-      fetch_and_save(usd_cash_entry, cash_lookup = NULL),
-      error = function(e) {
-        message("USD cash fetch failed: ", conditionMessage(e), "; trying cached parquet...")
-        load_cached_cash(usd_cash_entry$ticker, opts$output_dir)
-      }
-    )
-    if (is.null(usd_cash_df)) stop("USD cash curve missing (both fetch and cached parquet failed); cannot hedge.")
+    usd_cash_df <- fetch_and_save(usd_cash_entry, cash_lookup = NULL)
     cash_lookup[["USD"]] <- usd_cash_df
   }
 
   other_cash_entries <- purrr::discard(cash_entries, ~ (.x$currency %||% .x$quote_currency %||% "") == "USD")
   if (length(other_cash_entries) > 0) {
-    other_results <- purrr::map(other_cash_entries, ~ tryCatch(
-      fetch_and_save(.x, cash_lookup),
-      error = function(e) {
-        message("Non-USD cash fetch failed for ", .x$ticker, ": ", conditionMessage(e), "; trying cached parquet...")
-        load_cached_cash(.x$ticker, opts$output_dir)
-      }
-    ))
+    other_results <- purrr::map(other_cash_entries, ~ fetch_and_save(.x, cash_lookup))
     other_lookup <- purrr::set_names(
       other_results,
       purrr::map_chr(other_cash_entries, ~ .x$currency %||% .x$quote_currency %||% "USD")
     )
-    if (any(purrr::map_lgl(other_lookup, is.null))) {
-      stop("One or more non-USD cash curves missing (fetch + cached); cannot hedge rates.")
-    }
     cash_lookup <- c(cash_lookup, other_lookup)
   }
 }

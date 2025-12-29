@@ -95,3 +95,4 @@ ggplot2::ggsave(output_plot, p, width = 10, height = 6, dpi = 320)
 
 message("2025 return table written to ", output_csv)
 message("2025 YTD plot written to ", output_plot)
+
